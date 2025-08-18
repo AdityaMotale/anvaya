@@ -1,4 +1,4 @@
-"""Preprocessor to process raw Sanskrit text to prepare for BPE tokenization."""
+"""Preprocessor for raw Sanskrit text to prepare it for BPE tokenization."""
 
 import argparse
 import sys
@@ -60,7 +60,7 @@ def write_lines(path: str, lines: Iterable[str]) -> None:
 
 
 def main() -> None:
-    """Preprocess raw Sanskrit text files (utf-8) encoded."""
+    """Preprocess raw Sanskrit text (utf-8 encoded) files."""
     parser = argparse.ArgumentParser(
         description="Pre-process raw Sanskrit text for tokenization process"
     )
@@ -91,12 +91,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
-# - Read line-by-line
-# - Normalize text using NFC
-# - Validate sanskrit bytes
-# - Special tokens (| and ||)
-# - Apply Sandhi-Splitting rules
-# - Split lines by special tokens
-# - Write back to txt file
