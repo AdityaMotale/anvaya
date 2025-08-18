@@ -5,17 +5,87 @@
 import re
 import unicodedata
 
+#
+# Sanskrit Unicodes
+#
+
+VERTICAL_BAR = "|"
+DOUBLE_VERTICAL_BAR = "||"
+
 ANUSVARA = "ं"  # U+0902
 VISARGA = "ः"  # U+0903
-DANDA_UNICODE = "।"  # U+0964
-DOUBLE_DANDA_UNICODE = "॥"  # U+0965
-DANDA = "|"
-DOUBLE_DANDA = "||"
+VIRAMA = "्"  # U+094D
+DANDA = "।"  # U+0964
+DOUBLE_DANDA = "॥"  # U+0965
+
+
+VOWELS_INDEP = ["अ", "आ", "इ", "ई", "उ", "ऊ", "ऋ", "ॠ", "ऌ", "ॡ", "ए", "ऐ", "ओ", "औ"]
+
+MATRA_TO_INDEP = {
+    "ा": "आ",
+    "ि": "इ",
+    "ी": "ई",
+    "ु": "उ",
+    "ू": "ऊ",
+    "ृ": "ऋ",
+    "ॄ": "ॠ",
+    "े": "ए",
+    "ै": "ऐ",
+    "ो": "ओ",
+    "ौ": "औ",
+}
+
+# Consonant classes
+GUTTURALS = set(list("कखगघङ"))
+PALATALS = set(list("चछजझञ"))
+RETROFLEX = set(list("टठडढण"))
+DENTALS = set(list("तथदधन"))
+LABIALS = set(list("पफबभम"))
+
+NASAL_FOR_CLASS = {
+    "guttural": "ङ" + VIRAMA,
+    "palatal": "ञ" + VIRAMA,
+    "retroflex": "ण" + VIRAMA,
+    "dental": "न" + VIRAMA,
+    "labial": "म" + VIRAMA,
+}
+
+# Vowel reverse mapping (common classical reverse-sandhi candidates)
+VOWEL_REVERSE_RULES = {
+    "ौ": ("अ", "ऊ"),  # au -> a + ū
+    "ै": ("अ", "ई"),  # ai -> a + ī
+    "ो": ("अ", "उ"),  # o  -> a + u
+    "े": ("अ", "इ"),  # e  -> a + i
+    "ा": ("अ", "अ"),  # ā  -> a + a
+    "औ": ("अ", "ऊ"),
+    "ऐ": ("अ", "ई"),
+    "ओ": ("अ", "उ"),
+    "ए": ("अ", "इ"),
+    "आ": ("अ", "अ"),
+}
+
+# Specific consonant cluster reversals
+SPECIFIC_CONSONANT_REVERSES = {
+    "च्च": ("त" + VIRAMA, "च"),
+    "च्छ": ("त" + VIRAMA, "छ"),
+    "त्त": ("त" + VIRAMA, "त"),
+    "द्ध": ("द" + VIRAMA, "ध"),
+}
+
+
+#
+# Special Tokens
+#
 
 DANDA_TOKEN = "<DANDA>"
 DOUBLE_DANDA_TOKEN = "<DANDA2>"
 
 SPECIAL_TOKENS_SET: list[str] = [DANDA_TOKEN, DOUBLE_DANDA_TOKEN]
+
+
+#
+# Common utilities
+#
 
 
 def split_verse_by_special_tokens(verse: str, tokens: list[str]) -> list[str]:
@@ -57,12 +127,12 @@ def insert_special_tokens(verse: str) -> str:
 
     """
     # special token for (।), used as line break in verse.
-    verse = verse.replace(DANDA_UNICODE, DANDA_TOKEN)
     verse = verse.replace(DANDA, DANDA_TOKEN)
+    verse = verse.replace(VERTICAL_BAR, DANDA_TOKEN)
 
     # special token for (॥ ), indicates verse end.
-    verse = verse.replace(DOUBLE_DANDA_UNICODE, DOUBLE_DANDA_TOKEN)
-    return verse.replace(DOUBLE_DANDA, DOUBLE_DANDA_TOKEN)
+    verse = verse.replace(DOUBLE_DANDA, DOUBLE_DANDA_TOKEN)
+    return verse.replace(DOUBLE_VERTICAL_BAR, DOUBLE_DANDA_TOKEN)
 
 
 def is_sanskrit_char(ch: str) -> bool:

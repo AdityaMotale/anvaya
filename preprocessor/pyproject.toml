@@ -2,6 +2,5 @@
 name = "preprocessor"
 version = "0.1.0"
 description = "Preprocessor for raw Sanskrit text to prepare it for BPE tokenization."
-readme = "README.md"
 requires-python = ">=3.14"
 dependencies = []
