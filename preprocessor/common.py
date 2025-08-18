@@ -18,7 +18,6 @@ VIRAMA = "्"  # U+094D
 DANDA = "।"  # U+0964
 DOUBLE_DANDA = "॥"  # U+0965
 
-
 VOWELS_INDEP = ["अ", "आ", "इ", "ई", "उ", "ऊ", "ऋ", "ॠ", "ऌ", "ॡ", "ए", "ऐ", "ओ", "औ"]
 
 MATRA_TO_INDEP = {

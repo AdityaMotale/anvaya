@@ -13,6 +13,7 @@ from common import (
     sanitize_verse,
     split_verse_by_special_tokens,
 )
+from sandhi_split import generate_split_candidates
 
 
 def open_file(path: str, mode: str = "r") -> IO:
@@ -81,10 +82,12 @@ def main() -> None:
     for verse in read_lines(input_file):
         norm_verse = normalize_verse(verse)
         sanitized_verse = sanitize_verse(norm_verse)
+        split_candidates = generate_split_candidates(sanitized_verse)
         tokenized_verse = insert_special_tokens(sanitized_verse)
         split_verse = split_verse_by_special_tokens(tokenized_verse, SPECIAL_TOKENS_SET)
 
         lines.extend(split_verse)
+        print(split_candidates)
 
     write_lines(output_file, lines)
 
