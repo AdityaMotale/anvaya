@@ -356,10 +356,10 @@ def all_splits_for_token(token: str) -> list[tuple[str, str]]:
 
 
 def generate_split_candidates(text: str) -> list[tuple[str, str]]:
-    """Process and get a list of candidate splits for NFC normalized Sanskrit text.
+    """Process and get a list of candidate splits for NFC normalized Sanskrit morpheme.
 
     Args:
-        text: Normalized Sanskrit text
+        text: Normalized Sanskrit morpheme
 
     Returns:
         list of split candidate as tuple: (nl, nr)

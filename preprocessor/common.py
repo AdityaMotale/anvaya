@@ -87,6 +87,25 @@ SPECIAL_TOKENS_SET: list[str] = [DANDA_TOKEN, DOUBLE_DANDA_TOKEN]
 #
 
 
+def get_morphemes_from_verse(verse: str, exclude_tokens: list[str]) -> list[str]:
+    """Extract morphemes (Sanskrit Word) from the given verse, excluding special tokens.
+
+    Args:
+        verse: preprocessed Sanskrit verse
+        exclude_tokens: list of special tokens to exclude
+
+    Returns:
+        list of morphemes w/o the special tokens
+
+    """
+    token_pattern = "|".join(map(re.escape, exclude_tokens))
+    pattern = f"(?:{token_pattern}|\\s+)"
+
+    parts = re.split(pattern, verse)
+
+    return [p for p in parts if p and p not in exclude_tokens]
+
+
 def split_verse_by_special_tokens(verse: str, tokens: list[str]) -> list[str]:
     """Split given Sanskrit verse by special tokens.
 

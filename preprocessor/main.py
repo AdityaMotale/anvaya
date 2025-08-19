@@ -3,11 +3,13 @@
 import argparse
 import sys
 from collections.abc import Generator, Iterable
+from itertools import product
 from pathlib import Path
 from typing import IO
 
 from common import (
     SPECIAL_TOKENS_SET,
+    get_morphemes_from_verse,
     insert_special_tokens,
     normalize_verse,
     sanitize_verse,
@@ -82,12 +84,36 @@ def main() -> None:
     for verse in read_lines(input_file):
         norm_verse = normalize_verse(verse)
         sanitized_verse = sanitize_verse(norm_verse)
-        split_candidates = generate_split_candidates(sanitized_verse)
         tokenized_verse = insert_special_tokens(sanitized_verse)
-        split_verse = split_verse_by_special_tokens(tokenized_verse, SPECIAL_TOKENS_SET)
+        split_verses = split_verse_by_special_tokens(
+            tokenized_verse, SPECIAL_TOKENS_SET
+        )
 
-        lines.extend(split_verse)
-        print(split_candidates)
+        for v in split_verses:
+            morphemes = get_morphemes_from_verse(v, SPECIAL_TOKENS_SET)
+
+            # collect possible splits for each morpheme
+            all_split_options = []
+
+            for morpheme in morphemes:
+                splits = generate_split_candidates(morpheme)
+
+                # no split possible, we keep original word
+                if len(splits) == 0:
+                    all_split_options.append([(morpheme, "")])
+                else:
+                    all_split_options.append(splits)
+
+            # Cartesian product => all combinations of morpheme splits
+            for combo in product(*all_split_options):
+                new_verse = v
+
+                for original, (left, right) in zip(morphemes, combo):
+                    # only replace if a real split
+                    if right:
+                        new_verse = new_verse.replace(original, f"{left} {right}", 1)
+
+                lines.append(new_verse)
 
     write_lines(output_file, lines)
 
