@@ -118,7 +118,7 @@ def main() -> None:
 
         processed_count += 1
 
-    print(f'Processed {len(lines)} lines from "{input_file}"')
+    print(f'Processed {processed_count} lines from "{input_file}"')
 
     write_lines(output_file, lines)
     print(f'Wrote {len(lines)} verse\'s to "{output_file}"')
