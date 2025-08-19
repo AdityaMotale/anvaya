@@ -80,6 +80,7 @@ def main() -> None:
         sys.exit(1)
 
     lines: Iterable[str] = []
+    processed_count: int = 0
 
     for verse in read_lines(input_file):
         norm_verse = normalize_verse(verse)
@@ -113,10 +114,21 @@ def main() -> None:
                     if right:
                         new_verse = new_verse.replace(original, f"{left} {right}", 1)
 
-                lines.append(new_verse)
+                lines.append(new_verse.strip())
+
+        processed_count += 1
+
+    print(f'Processed {len(lines)} lines from "{input_file}"')
 
     write_lines(output_file, lines)
+    print(f'Wrote {len(lines)} verse\'s to "{output_file}"')
 
 
 if __name__ == "__main__":
+    import time
+
+    start_time = time.time()
     main()
+    end_time = time.time()
+
+    print(f"\nPreprocessing completed in {end_time - start_time:.3f} seconds")

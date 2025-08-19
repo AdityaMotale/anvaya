@@ -144,13 +144,16 @@ def insert_special_tokens(verse: str) -> str:
         Sanskrit verse w/ special tokens
 
     """
+    # NOTE: A space is inserted as a prefix to each token to
+    # aid w/ parser while tokenization process
+
     # special token for (।), used as line break in verse.
-    verse = verse.replace(DANDA, DANDA_TOKEN)
-    verse = verse.replace(VERTICAL_BAR, DANDA_TOKEN)
+    verse = verse.replace(DANDA, f" {DANDA_TOKEN}")
+    verse = verse.replace(VERTICAL_BAR, f" {DANDA_TOKEN}")
 
     # special token for (॥ ), indicates verse end.
-    verse = verse.replace(DOUBLE_DANDA, DOUBLE_DANDA_TOKEN)
-    return verse.replace(DOUBLE_VERTICAL_BAR, DOUBLE_DANDA_TOKEN)
+    verse = verse.replace(DOUBLE_DANDA, f" {DOUBLE_DANDA_TOKEN}")
+    return verse.replace(DOUBLE_VERTICAL_BAR, f" {DOUBLE_DANDA_TOKEN}")
 
 
 def is_sanskrit_char(ch: str) -> bool:
