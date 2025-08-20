@@ -1,6 +1,6 @@
 # ruff: noqa
 
-"""Train a BPE Tokenizer from raw Sanskrit text."""
+"""Train a BPE Tokenizer from preprocessed Sanskrit corpus."""
 
 import argparse
 import sys
@@ -10,9 +10,14 @@ from collections import Counter, defaultdict
 
 import regex
 
-EOM_MARKER: str = "</w>"
+EOM_MARKER: str = "</m>"
 NUM_MERGES: int = 10_000
 MIN_FREQ: int = 1
+
+DANDA_TOKEN = "<DANDA>"
+DOUBLE_DANDA_TOKEN = "<DANDA2>"
+
+SPECIAL_TOKENS_SET: list[str] = [DANDA_TOKEN, DOUBLE_DANDA_TOKEN]
 
 
 def open_file(path: str, mode: str = "r") -> IO:
@@ -57,75 +62,6 @@ def grapheme_split(m: str) -> list[str]:
     return regex.findall(r"\X", m)
 
 
-def default_tokenize_word(word: str) -> list[str]:
-    parts = grapheme_split(word)
-    parts.append(EOM_MARKER)
-
-    return parts
-
-
-def get_initial_vocab(corpus: Iterable[str]) -> Counter:
-    vocab = Counter()
-
-    for line in corpus:
-        line = line.strip()
-
-        if not line:
-            continue
-
-        for raw_word in line.split():
-            word = raw_word.strip()
-            symbols = tuple(default_tokenize_word(word))
-
-            vocab[symbols] += 1
-
-    return vocab
-
-
-def merge_vocab_once(pair: tuple[str, str], vocab: Counter) -> Counter:
-    merged = {}
-
-    bigram = " ".join(pair)
-    replacement = "".join(pair)
-
-    for word, freq in vocab.items():
-        word_str = " ".join(word)
-        new_word_str = word_str.replace(bigram, replacement)
-        new_word = tuple(new_word_str.split(" "))
-        merged[new_word] = merged.get(new_word, 0) + freq
-
-    return Counter(merged)
-
-
-def get_pair_stats(vocab: Counter) -> dict[tuple[str, str], int]:
-    pairs = defaultdict(int)
-
-    for word, freq in vocab.items():
-        for i in range(len(word) - 1):
-            pairs[(word[i], word[i + 1])] += freq
-
-    return pairs
-
-
-def train(corpus: Iterable[str]) -> Counter:
-    vocab = get_initial_vocab(corpus)
-
-    for _ in range(NUM_MERGES):
-        pairs = get_pair_stats(vocab)
-
-        if not pairs:
-            break
-
-        best_pair, best_count = max(pairs.items(), key=lambda kv: kv[1])
-
-        if best_count < MIN_FREQ:
-            break
-
-        vocab = merge_vocab_once(best_pair, vocab)
-
-    return vocab
-
-
 def main() -> None:
     """Train a BPE Tokenizer from raw Sanskrit text."""
     parser = argparse.ArgumentParser(
@@ -145,11 +81,38 @@ def main() -> None:
 
     lines = read_file(input_file)
 
-    l1 = lines[:10]
-    vocab = train(l1)
+    graphemes_list = []
+    vocab = defaultdict(int)
 
-    for pair in vocab:
-        print(pair)
+    for line in lines[:10]:
+        for word in line.strip().split(" "):
+            _list = []
+            word = word.strip()
+
+            if word in SPECIAL_TOKENS_SET:
+                _list.append(word)
+            else:
+                _list.extend(grapheme_split(word))
+
+            _list.append(EOM_MARKER)
+            graphemes_list.append(_list)
+
+    for v in graphemes_list:
+        for i in range(len(v) - 1):
+            pair = (v[i], v[i + 1])
+
+            vocab[pair] += 1
+
+    sorted_vocab = dict(
+        sorted(
+            vocab.items(),
+            key=lambda item: item[1],
+            reverse=True,
+        )
+    )
+
+    for k, v in sorted_vocab.items():
+        print(f"{k}: {v}")
 
 
 if __name__ == "__main__":
