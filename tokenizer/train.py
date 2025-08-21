@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 #
 # Default Configs
 #
-DEFAULT_TARGET_VOCAB = 20_000
+DEFAULT_TARGET_VOCAB = 28_000
 DEFAULT_MIN_FREQ = 2
 DEFAULT_EOS = "</M>"
 DEFAULT_SPECIAL_TOKENS = ["<DANDA>", "<DANDA2>", "</M>", "<PAD>", "<UNK>"]
@@ -233,6 +233,9 @@ def train_bpe(
     merges: list[tuple[str, str]] = []
     merge_count = 0
 
+    last_merged_pair: tuple[str, str] | None = None
+    last_merged_freq: int | None = None
+
     # safety cap
     max_merges = max_merges if max_merges is not None else (target_vocab * 10)
 
@@ -262,6 +265,9 @@ def train_bpe(
             )
             break
 
+        last_merged_pair = best_pair
+        last_merged_freq = best_freq
+
         vocab = merge_vocab_once(best_pair, vocab)
         merges.append(best_pair)
         merge_count += 1
@@ -269,11 +275,10 @@ def train_bpe(
         # log periodically
         if merge_count % LOG_INTERVAL_MERGES == 0 or merge_count < 10:
             logger.info(
-                "Merge #%d: %s (freq=%d). Vocab forms: %d",
+                "Merge #%d: %s (freq=%d)",
                 merge_count,
                 best_pair,
                 best_freq,
-                len(vocab),
             )
 
         token_set = extract_token_set(vocab)
@@ -291,6 +296,9 @@ def train_bpe(
     logger.info(
         "Final size of merge list: %d",
         len(final_merges),
+    )
+    logger.info(
+        "Last merged pair: %s with frequency %d", last_merged_pair, last_merged_freq
     )
 
     return {
