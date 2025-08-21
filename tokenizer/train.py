@@ -98,6 +98,58 @@ def count_frequencies(vocab: list[list[str]]) -> dict[tuple[str, str], int]:
     return dict(pair_freqs)
 
 
+def merge_pair(pair: tuple[str, str], vocab: list[list[str]]) -> list[list[str]]:
+    """Merge all occurrences of the adjacent pair `pair` in the vocab.
+
+    Args:
+        pair: a tuple of two symbols to merge, e.g. ("रा", "म")
+        vocab: list of words, each word is a list of grapheme tokens (strings)
+
+    Returns:
+        new_vocab: new vocab w/ merged pairs
+
+    """
+    a, b = pair
+    bigram = f"{a} {b}"
+    merged_symbol = a + b
+
+    new_vocab: list[list[str]] = []
+
+    for word in vocab:
+        wstr = " ".join(word)
+
+        if bigram in wstr:
+            wstr = wstr.replace(bigram, merged_symbol)
+            new_word = wstr.split(" ")
+            new_vocab.append(new_word)
+        else:
+            new_vocab.append(list(word))
+
+    return new_vocab
+
+
+def _training_loop(corpus: list[str]) -> None:
+    vocab = _initial_vocab(corpus)
+    merges: list[tuple[str, str]] = []
+
+    while True:
+        pair_freq = count_frequencies(vocab)
+
+        if not pair_freq:
+            break
+
+        best_pair = max(pair_freq.items(), key=lambda kv: kv[1])[0]
+
+        if pair_freq[best_pair] < MIN_FREQ:
+            break
+
+        vocab = merge_pair(best_pair, vocab)
+        merges.append(best_pair)
+
+    print(vocab)
+    print(merges)
+
+
 def main() -> None:
     """Train a BPE Tokenizer from raw Sanskrit text."""
     parser = argparse.ArgumentParser(
@@ -118,10 +170,7 @@ def main() -> None:
     corpus = read_file(input_file)
     print(f"Training on {len(corpus)} lines of corpus")
 
-    initial_vocab = _initial_vocab(corpus[:10])
-    pair_freq = count_frequencies(initial_vocab)
-
-    print(pair_freq)
+    _training_loop(corpus[:10])
 
 
 if __name__ == "__main__":
