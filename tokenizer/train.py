@@ -1,23 +1,28 @@
-# ruff: noqa
-
 """Train a BPE Tokenizer from preprocessed Sanskrit corpus."""
 
 import argparse
 import sys
 from pathlib import Path
-from typing import IO, Iterable
-from collections import Counter, defaultdict
+from typing import IO
 
-import regex
+from grampheme import grapheme_clusters
 
-EOM_MARKER: str = "</m>"
-NUM_MERGES: int = 10_000
+NUM_MERGES: int = 10
 MIN_FREQ: int = 1
 
-DANDA_TOKEN = "<DANDA>"
-DOUBLE_DANDA_TOKEN = "<DANDA2>"
+DANDA_TOKEN = "<DANDA>"  # noqa: S105
+DOUBLE_DANDA_TOKEN = "<DANDA2>"  # noqa: S105
+EOM_TOKEN = "</M>"  # noqa: S105
+PAD_TOKEN = "<PAD>"  # noqa: S105
+UNK_TOKEN = "<UNK>"  # noqa: S105
 
-SPECIAL_TOKENS_SET: list[str] = [DANDA_TOKEN, DOUBLE_DANDA_TOKEN]
+SPECIAL_TOKENS_SET: list[str] = [
+    DANDA_TOKEN,
+    DOUBLE_DANDA_TOKEN,
+    EOM_TOKEN,
+    PAD_TOKEN,
+    UNK_TOKEN,
+]
 
 
 def open_file(path: str, mode: str = "r") -> IO:
@@ -49,17 +54,27 @@ def read_file(path: str) -> list[str]:
     return file.readlines()
 
 
-def grapheme_split(m: str) -> list[str]:
-    """Split Sanskrit morpheme into Unicode grapheme clusters.
+def _initial_vocab(corpus: list[str]) -> list[str]:
+    vocab = []
 
-    Args:
-        m: Input morpheme
+    for verse in corpus:
+        words = verse.split(" ")
 
-    Returns:
-        List of Unicode symbols
+        for word in words:
+            word = word.strip()
+            clusters = None
 
-    """
-    return regex.findall(r"\X", m)
+            if word in SPECIAL_TOKENS_SET:
+                clusters = [word]
+            else:
+                clusters = grapheme_clusters(word)
+
+            clusters.append(EOM_TOKEN)
+
+            if len(clusters) > 1:
+                vocab.append(clusters)
+
+    return vocab
 
 
 def main() -> None:
@@ -79,40 +94,11 @@ def main() -> None:
         parser.print_help()
         sys.exit(1)
 
-    lines = read_file(input_file)
+    corpus = read_file(input_file)
+    print(f"Training on {len(corpus)} lines of corpus")
 
-    graphemes_list = []
-    vocab = defaultdict(int)
-
-    for line in lines[:10]:
-        for word in line.strip().split(" "):
-            _list = []
-            word = word.strip()
-
-            if word in SPECIAL_TOKENS_SET:
-                _list.append(word)
-            else:
-                _list.extend(grapheme_split(word))
-
-            _list.append(EOM_MARKER)
-            graphemes_list.append(_list)
-
-    for v in graphemes_list:
-        for i in range(len(v) - 1):
-            pair = (v[i], v[i + 1])
-
-            vocab[pair] += 1
-
-    sorted_vocab = dict(
-        sorted(
-            vocab.items(),
-            key=lambda item: item[1],
-            reverse=True,
-        )
-    )
-
-    for k, v in sorted_vocab.items():
-        print(f"{k}: {v}")
+    vocab = _initial_vocab(corpus[:10])
+    print(vocab)
 
 
 if __name__ == "__main__":

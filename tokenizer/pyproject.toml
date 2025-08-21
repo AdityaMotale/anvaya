@@ -1,9 +1,6 @@
 [project]
 name = "tokenizer"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
+description = "BPE Tokenizer for Sanskrit text"
 requires-python = ">=3.14"
-dependencies = [
-    "regex>=2025.7.34",
-]
+dependencies = []
