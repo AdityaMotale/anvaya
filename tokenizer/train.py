@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+from collections import defaultdict
 from pathlib import Path
 from typing import IO
 
@@ -54,7 +55,7 @@ def read_file(path: str) -> list[str]:
     return file.readlines()
 
 
-def _initial_vocab(corpus: list[str]) -> list[str]:
+def _initial_vocab(corpus: list[str]) -> list[list[str]]:
     vocab = []
 
     for verse in corpus:
@@ -77,6 +78,26 @@ def _initial_vocab(corpus: list[str]) -> list[str]:
     return vocab
 
 
+def count_frequencies(vocab: list[list[str]]) -> dict[tuple[str, str], int]:
+    """Count frequencies of all adjacent grapheme pairs in the vocab.
+
+    Args:
+        vocab: list of words, each as list of graphemes.
+
+    Returns:
+        dict mapping (grapheme1, grapheme2) -> frequency
+
+    """
+    pair_freqs: dict[tuple[str, str], int] = defaultdict(int)
+
+    for word in vocab:
+        for i in range(len(word) - 1):
+            pair = (word[i], word[i + 1])
+            pair_freqs[pair] += 1
+
+    return dict(pair_freqs)
+
+
 def main() -> None:
     """Train a BPE Tokenizer from raw Sanskrit text."""
     parser = argparse.ArgumentParser(
@@ -97,8 +118,10 @@ def main() -> None:
     corpus = read_file(input_file)
     print(f"Training on {len(corpus)} lines of corpus")
 
-    vocab = _initial_vocab(corpus[:10])
-    print(vocab)
+    initial_vocab = _initial_vocab(corpus[:10])
+    pair_freq = count_frequencies(initial_vocab)
+
+    print(pair_freq)
 
 
 if __name__ == "__main__":
