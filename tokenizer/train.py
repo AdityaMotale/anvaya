@@ -1,29 +1,37 @@
 """Train a BPE Tokenizer from preprocessed Sanskrit corpus."""
 
+from __future__ import annotations
+
 import argparse
+import json
+import logging
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
-from typing import IO
+from typing import IO, TYPE_CHECKING
 
-from grampheme import grapheme_clusters
+import regex
 
-NUM_MERGES: int = 10
-MIN_FREQ: int = 1
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
-DANDA_TOKEN = "<DANDA>"  # noqa: S105
-DOUBLE_DANDA_TOKEN = "<DANDA2>"  # noqa: S105
-EOM_TOKEN = "</M>"  # noqa: S105
-PAD_TOKEN = "<PAD>"  # noqa: S105
-UNK_TOKEN = "<UNK>"  # noqa: S105
+#
+# Default Configs
+#
+DEFAULT_TARGET_VOCAB = 20_000
+DEFAULT_MIN_FREQ = 2
+DEFAULT_EOS = "</M>"
+DEFAULT_SPECIAL_TOKENS = ["<DANDA>", "<DANDA2>", "</M>", "<PAD>", "<UNK>"]
+LOG_INTERVAL_MERGES = 50
 
-SPECIAL_TOKENS_SET: list[str] = [
-    DANDA_TOKEN,
-    DOUBLE_DANDA_TOKEN,
-    EOM_TOKEN,
-    PAD_TOKEN,
-    UNK_TOKEN,
-]
+# ---------------------------
+# Logger
+# ---------------------------
+logger = logging.getLogger("BPE Training")
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 
 def open_file(path: str, mode: str = "r") -> IO:
@@ -40,45 +48,53 @@ def open_file(path: str, mode: str = "r") -> IO:
     return Path(path).open(mode, encoding="utf-8")
 
 
-def read_file(path: str) -> list[str]:
-    """Read entire input file into a large list of strings.
+def stream_lines(path: str) -> Iterable[str]:
+    """Yield lines from a UTF-8 text file lazily, one at a time.
 
     Args:
         path: The file path
 
-    Returns:
-        List of lines read from the input file
+    Yields:
+        A line from the file
 
     """
     file = open_file(path)
 
-    return file.readlines()
+    for line in file:
+        yield line.rstrip("\n")
 
 
-def _initial_vocab(corpus: list[str]) -> list[list[str]]:
-    vocab = []
+def _grapheme_clusters(s: str) -> list[str]:
+    return regex.findall(r"\X", s)
 
-    for verse in corpus:
-        words = verse.split(" ")
 
-        for word in words:
-            word = word.strip()
-            clusters = None
+def _build_initial_vocab(
+    lines: Iterable[str],
+    eos_marker: str,
+    special_tokens: list[str],
+) -> Counter:
+    vocab: Counter = Counter()
 
-            if word in SPECIAL_TOKENS_SET:
-                clusters = [word]
+    for line in lines:
+        if not line:
+            continue
+
+        for raw_word in line.split():
+            word = raw_word.strip()
+
+            if not word:
+                continue
+            if word in special_tokens:
+                symbols = (word, eos_marker)
             else:
-                clusters = grapheme_clusters(word)
+                symbols = (*tuple(_grapheme_clusters(word)), eos_marker)
 
-            clusters.append(EOM_TOKEN)
-
-            if len(clusters) > 1:
-                vocab.append(clusters)
+            vocab[symbols] += 1
 
     return vocab
 
 
-def count_frequencies(vocab: list[list[str]]) -> dict[tuple[str, str], int]:
+def get_pair_frequencies(vocab: Counter) -> dict[tuple[str, str], int]:
     """Count frequencies of all adjacent grapheme pairs in the vocab.
 
     Args:
@@ -88,17 +104,19 @@ def count_frequencies(vocab: list[list[str]]) -> dict[tuple[str, str], int]:
         dict mapping (grapheme1, grapheme2) -> frequency
 
     """
-    pair_freqs: dict[tuple[str, str], int] = defaultdict(int)
+    pairs: dict[tuple[str, str], int] = defaultdict(int)
 
-    for word in vocab:
+    for word, freq in vocab.items():
+        if len(word) < 2:
+            continue
+
         for i in range(len(word) - 1):
-            pair = (word[i], word[i + 1])
-            pair_freqs[pair] += 1
+            pairs[(word[i], word[i + 1])] += freq  # noqa
 
-    return dict(pair_freqs)
+    return pairs
 
 
-def merge_pair(pair: tuple[str, str], vocab: list[list[str]]) -> list[list[str]]:
+def merge_vocab_once(pair: tuple[str, str], vocab: Counter) -> Counter:
     """Merge all occurrences of the adjacent pair `pair` in the vocab.
 
     Args:
@@ -112,42 +130,192 @@ def merge_pair(pair: tuple[str, str], vocab: list[list[str]]) -> list[list[str]]
     a, b = pair
     bigram = f"{a} {b}"
     merged_symbol = a + b
+    new_vocab: Counter = Counter()
 
-    new_vocab: list[list[str]] = []
+    for word, freq in vocab.items():
+        s = " ".join(word)
 
-    for word in vocab:
-        wstr = " ".join(word)
-
-        if bigram in wstr:
-            wstr = wstr.replace(bigram, merged_symbol)
-            new_word = wstr.split(" ")
-            new_vocab.append(new_word)
+        if bigram in s:
+            s_new = s.replace(bigram, merged_symbol)
+            new_word = tuple(s_new.split(" "))
+            new_vocab[new_word] += freq
         else:
-            new_vocab.append(list(word))
+            new_vocab[word] += freq
 
     return new_vocab
 
 
-def _training_loop(corpus: list[str]) -> None:
-    vocab = _initial_vocab(corpus)
+def extract_token_set(vocab: Counter) -> set:
+    """Get the set of all token symbols present in vocab.
+
+    Returns:
+        set of tokens
+
+    """
+    tokens = set()
+
+    for word in vocab:
+        for tok in word:
+            tokens.add(tok)
+
+    return tokens
+
+
+def build_token2id(
+    vocab: Counter, special_tokens: list[str], eos_marker: str
+) -> dict[str, int]:
+    """Build token2id mappings.
+
+    > Special tokens are placed first in the given order.
+
+    Returns:
+        token2id dictioanry
+
+    """
+    token_freq: Counter = Counter()
+
+    for word, cnt in vocab.items():
+        for tok in word:
+            token_freq[tok] += cnt
+
+    token_list: list[str] = []
+    seen = set()
+
+    for st in special_tokens:
+        if st not in seen:
+            token_list.append(st)
+            seen.add(st)
+
+    sorted_tokens = sorted(
+        ((tok, f) for tok, f in token_freq.items() if tok not in seen),
+        key=lambda kv: (-kv[1], kv[0]),
+    )
+
+    for tok, _ in sorted_tokens:
+        token_list.append(tok)
+        seen.add(tok)
+
+    if eos_marker not in seen:
+        token_list.append(eos_marker)
+
+    return {tok: idx for idx, tok in enumerate(token_list)}
+
+
+def train_bpe(
+    input_path: str,
+) -> dict:
+    """Train a BPE Tokenizer on preprocessed Sanskrit text corpus.
+
+    Returns:
+        model as dict object
+
+    """
+    target_vocab: int = DEFAULT_TARGET_VOCAB
+    min_freq: int = DEFAULT_MIN_FREQ
+    max_merges: int | None = None
+    eos_marker: str = DEFAULT_EOS
+    special_tokens: list[str] = DEFAULT_SPECIAL_TOKENS
+
+    logger.info("Building initial vocab from %s", input_path)
+
+    lines_iter = stream_lines(input_path)
+    vocab = _build_initial_vocab(
+        lines_iter,
+        eos_marker=eos_marker,
+        special_tokens=special_tokens,
+    )
+
+    logger.info("Initial vocab types: %d  (unique word forms)", len(vocab))
+
+    token_set = extract_token_set(vocab)
+    logger.info("Initial token set size: %d", len(token_set))
+
     merges: list[tuple[str, str]] = []
+    merge_count = 0
+
+    # safety cap
+    max_merges = max_merges if max_merges is not None else (target_vocab * 10)
 
     while True:
-        pair_freq = count_frequencies(vocab)
-
-        if not pair_freq:
+        if len(token_set) >= target_vocab:
+            logger.info(
+                "Reached target token set size: %d >= %d", len(token_set), target_vocab
+            )
             break
 
-        best_pair = max(pair_freq.items(), key=lambda kv: kv[1])[0]
-
-        if pair_freq[best_pair] < MIN_FREQ:
+        if merge_count >= max_merges:
+            logger.warning("Reached max_merges cap: %d", merge_count)
             break
 
-        vocab = merge_pair(best_pair, vocab)
+        pair_freqs = get_pair_frequencies(vocab)
+        if not pair_freqs:
+            logger.info("No adjacent pairs left to merge.")
+            break
+
+        best_freq = max(pair_freqs.values())
+        best_candidates = [p for p, f in pair_freqs.items() if f == best_freq]
+        best_pair = sorted(best_candidates)[0]
+
+        if best_freq < min_freq:
+            logger.info(
+                "Best pair freq %d is below min_freq %d; stopping.", best_freq, min_freq
+            )
+            break
+
+        vocab = merge_vocab_once(best_pair, vocab)
         merges.append(best_pair)
+        merge_count += 1
 
-    print(vocab)
-    print(merges)
+        # log periodically
+        if merge_count % LOG_INTERVAL_MERGES == 0 or merge_count < 10:
+            logger.info(
+                "Merge #%d: %s (freq=%d). Vocab forms: %d",
+                merge_count,
+                best_pair,
+                best_freq,
+                len(vocab),
+            )
+
+        token_set = extract_token_set(vocab)
+
+    token2id = build_token2id(
+        vocab, special_tokens=special_tokens, eos_marker=eos_marker
+    )
+    final_merges = [[a, b] for (a, b) in merges]
+
+    logger.info(
+        "Final token set size: %d; final vocabulary tokens in token2id: %d",
+        len(token_set),
+        len(token2id),
+    )
+    logger.info(
+        "Final size of merge list: %d",
+        len(final_merges),
+    )
+
+    return {
+        "merges": final_merges,
+        "token2id": token2id,
+        "config": {
+            "target_vocab": target_vocab,
+            "min_freq": min_freq,
+            "eos_marker": eos_marker,
+            "special_tokens": special_tokens,
+            "max_merges_cap": max_merges,
+        },
+    }
+
+
+def save_model(path: str, model: dict) -> None:
+    """Write lines to a UTF-8 text file.
+
+    Args:
+        path: The file path
+        model: Trained BPE Model
+
+    """
+    file = Path(path)
+    file.write_text(json.dumps(model, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def main() -> None:
@@ -158,19 +326,24 @@ def main() -> None:
     parser.add_argument(
         "input", nargs="?", help="Path to preprocessed input file (UTF-8)"
     )
+    parser.add_argument(
+        "output",
+        nargs="?",
+        help="Path to output file (UTF-8)",
+    )
 
     args = parser.parse_args()
     input_file = args.input
+    output_file = args.output
 
     # exit(1) if invalid args
-    if input_file is None:
+    if input_file is None or output_file is None:
         parser.print_help()
         sys.exit(1)
 
-    corpus = read_file(input_file)
-    print(f"Training on {len(corpus)} lines of corpus")
-
-    _training_loop(corpus[:10])
+    # training loop
+    model = train_bpe(input_file)
+    save_model(output_file, model)
 
 
 if __name__ == "__main__":
