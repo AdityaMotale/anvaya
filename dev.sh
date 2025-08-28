@@ -7,6 +7,9 @@ case "$lang" in
     python)
         nix develop .#python
         ;;
+    rust)
+	nix develop .#rust
+	;;
     *)
         echo "Error: unknown env: '$lang'"
         exit 1
