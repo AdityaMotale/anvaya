@@ -1,42 +1,46 @@
 use std::{collections::HashMap, sync::LazyLock};
 
-struct PhoneticAdjuncts;
+use crate::common::{Consonant, Vowel};
 
-impl PhoneticAdjuncts {
-    pub const ANUSVARA: &'static str = "ं"; // U+0902
-    pub const VISARGA: &'static str = "ः"; // U+0903
-    pub const VIRAMA: &'static str = "्"; // U+094D
-
-    pub const GUTTURALS: [&'static str; 5] = ["क", "ख", "ग", "घ", "ङ"];
-    pub const PALATALS: [&'static str; 5] = ["च", "छ", "ज", "झ", "ञ"];
-    pub const RETROFLEX: [&'static str; 5] = ["ट", "ठ", "ड", "ढ", "ण"];
-    pub const DENTALS: [&'static str; 5] = ["त", "थ", "द", "ध", "न"];
-    pub const LABIALS: [&'static str; 5] = ["प", "फ", "ब", "भ", "म"];
+#[derive(Debug)]
+enum SoundClass {
+    Vowel(Vowel),
+    Consonent(Consonant),
 }
 
-struct Orthography;
+#[derive(Debug)]
+struct Rule {
+    name: &'static str,
+    desc: &'static str,
+    tag: &'static str,
+    left: SoundClass,
+    right: SoundClass,
+    outputs: Vec<(SoundClass, SoundClass)>,
+}
 
-impl Orthography {
-    pub const MATRA_TO_INDEP_VOWEL_MAP: LazyLock<HashMap<&'static str, &'static str>> =
-        LazyLock::new(|| {
-            let mut m = HashMap::new();
+struct Sandhi {
+    rules: Vec<Rule>,
+}
 
-            m.insert("ा", "आ");
-            m.insert("ि", "इ");
-            m.insert("ी", "ई");
-            m.insert("ु", "उ");
-            m.insert("ू", "ऊ");
-            m.insert("ृ", "ऋ");
-            m.insert("ॄ", "ॠ");
-            m.insert("े", "ए");
-            m.insert("ै", "ऐ");
-            m.insert("ो", "ओ");
-            m.insert("ौ", "औ");
+impl Sandhi {
+    pub fn new() -> Self {
+        Self {
+            rules: Self::get_rules(),
+        }
+    }
 
-            m
-        });
+    pub fn split(&self, morpheme: &str) -> Vec<(&'static str, &'static str)> {
+        Vec::new()
+    }
 
-    pub const INDEP_VOWELS: [&'static str; 14] = [
-        "अ", "आ", "इ", "ई", "उ", "ऊ", "ऋ", "ॠ", "ऌ", "ॡ", "ए", "ऐ", "ओ", "औ",
-    ];
+    fn get_rules() -> Vec<Rule> {
+        vec![Rule {
+            name: "savarṇa-dīrgha-a",
+            desc: "आ  => अ + अ ",
+            tag: "6.1.101",
+            left: SoundClass::Vowel(Vowel::A),
+            right: SoundClass::Vowel(Vowel::A),
+            outputs: vec![(SoundClass::Vowel(Vowel::A), SoundClass::Vowel(Vowel::A))],
+        }]
+    }
 }
