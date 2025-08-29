@@ -1,7 +1,11 @@
 use std::{collections::HashMap, sync::LazyLock};
 
-trait AsStr {
+pub(crate) trait AsStr {
     fn as_str(&self) -> &'static str;
+}
+
+pub(crate) trait AsChar {
+    fn as_char(&self) -> char;
 }
 
 #[derive(Debug)]
@@ -14,9 +18,19 @@ pub(crate) enum Adjuncts {
 impl AsStr for Adjuncts {
     fn as_str(&self) -> &'static str {
         match self {
-            Adjuncts::ANUSVARA => "ं", // U+0902
-            Adjuncts::VISARGA => "ः", // U+0903
-            Adjuncts::VIRAMA => "्",   // U+094D
+            Adjuncts::ANUSVARA => "ं",
+            Adjuncts::VISARGA => "ः",
+            Adjuncts::VIRAMA => "्",
+        }
+    }
+}
+
+impl AsChar for Adjuncts {
+    fn as_char(&self) -> char {
+        match self {
+            Adjuncts::ANUSVARA => '\u{0902}',
+            Adjuncts::VISARGA => '\u{0903}',
+            Adjuncts::VIRAMA => '\u{094D}',
         }
     }
 }
@@ -40,7 +54,7 @@ pub(crate) enum Vowel {
 impl AsStr for Vowel {
     fn as_str(&self) -> &'static str {
         match self {
-            Vowel::A => "",
+            Vowel::A => unimplemented!(),
             Vowel::AA => "ा",
             Vowel::I => "ि",
             Vowel::II => "ी",
@@ -52,6 +66,125 @@ impl AsStr for Vowel {
             Vowel::AI => "ै",
             Vowel::O => "ो",
             Vowel::AU => "ौ",
+        }
+    }
+}
+
+impl AsChar for Vowel {
+    fn as_char(&self) -> char {
+        match self {
+            Vowel::A => '\u{0905}',
+            Vowel::AA => '\u{093E}',
+            Vowel::I => '\u{093F}',
+            Vowel::II => '\u{0940}',
+            Vowel::U => '\u{0941}',
+            Vowel::UU => '\u{0942}',
+            Vowel::R => '\u{0943}',
+            Vowel::RR => '\u{0944}',
+            Vowel::E => '\u{0947}',
+            Vowel::AI => '\u{0948}',
+            Vowel::O => '\u{094B}',
+            Vowel::AU => '\u{094C}',
+        }
+    }
+}
+
+impl Vowel {
+    fn to_indep(&self) -> IndepVowel {
+        match self {
+            Vowel::A => IndepVowel::A,
+            Vowel::AA => IndepVowel::AA,
+            Vowel::I => IndepVowel::I,
+            Vowel::II => IndepVowel::II,
+            Vowel::U => IndepVowel::U,
+            Vowel::UU => IndepVowel::UU,
+            Vowel::R => IndepVowel::R,
+            Vowel::RR => IndepVowel::RR,
+            Vowel::E => IndepVowel::E,
+            Vowel::AI => IndepVowel::AI,
+            Vowel::O => IndepVowel::O,
+            Vowel::AU => IndepVowel::AU,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub(crate) enum IndepVowel {
+    A,
+    AA,
+    I,
+    II,
+    U,
+    UU,
+    R,
+    RR,
+    L,
+    LL,
+    E,
+    AI,
+    O,
+    AU,
+}
+
+impl AsStr for IndepVowel {
+    fn as_str(&self) -> &'static str {
+        match self {
+            IndepVowel::A => "अ",
+            IndepVowel::AA => "आ",
+            IndepVowel::I => "इ",
+            IndepVowel::II => "ई",
+            IndepVowel::U => "उ",
+            IndepVowel::UU => "ऊ",
+            IndepVowel::R => "ऋ",
+            IndepVowel::RR => "ॠ",
+            IndepVowel::L => "ऌ",
+            IndepVowel::LL => "ॡ",
+            IndepVowel::E => "ए",
+            IndepVowel::AI => "ऐ",
+            IndepVowel::O => "ओ",
+            IndepVowel::AU => "औ",
+        }
+    }
+}
+
+impl AsChar for IndepVowel {
+    fn as_char(&self) -> char {
+        match self {
+            IndepVowel::A => '\u{0905}',
+            IndepVowel::AA => '\u{0906}',
+            IndepVowel::I => '\u{0907}',
+            IndepVowel::II => '\u{0908}',
+            IndepVowel::U => '\u{0909}',
+            IndepVowel::UU => '\u{090A}',
+            IndepVowel::R => '\u{090B}',
+            IndepVowel::RR => '\u{0960}',
+            IndepVowel::L => '\u{090C}',
+            IndepVowel::LL => '\u{0961}',
+            IndepVowel::E => '\u{090F}',
+            IndepVowel::AI => '\u{0910}',
+            IndepVowel::O => '\u{0913}',
+            IndepVowel::AU => '\u{0914}',
+        }
+    }
+}
+
+impl IndepVowel {
+    fn to_vowel(&self) -> Vowel {
+        match self {
+            IndepVowel::A => Vowel::A,
+            IndepVowel::AA => Vowel::AA,
+            IndepVowel::I => Vowel::I,
+            IndepVowel::II => Vowel::II,
+            IndepVowel::U => Vowel::U,
+            IndepVowel::UU => Vowel::UU,
+            IndepVowel::R => Vowel::R,
+            IndepVowel::RR => Vowel::RR,
+            IndepVowel::E => Vowel::E,
+            IndepVowel::AI => Vowel::AI,
+            IndepVowel::O => Vowel::O,
+            IndepVowel::AU => Vowel::AU,
+            IndepVowel::L => unimplemented!(),
+            IndepVowel::LL => unimplemented!(),
         }
     }
 }
@@ -180,10 +313,6 @@ impl Orthography {
 
             m
         });
-
-    pub const INDEP_VOWELS: [&'static str; 14] = [
-        "अ", "आ", "इ", "ई", "उ", "ऊ", "ऋ", "ॠ", "ऌ", "ॡ", "ए", "ऐ", "ओ", "औ",
-    ];
 
     pub const GUTTURALS: [Consonant; 5] = [
         Consonant::Ka,
