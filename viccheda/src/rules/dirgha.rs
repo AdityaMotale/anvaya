@@ -1,6 +1,6 @@
 use crate::{
     common::{AsChar, AsStr, Consonant, IndepVowel, SoundClass, Vowel},
-    rules::{ends_with, nfc, Rule, RuleData},
+    rules::{ends_with_soundclass, nfc, trim_end_soundclass, Rule, RuleData},
     split::{Candidate, Sandhi},
 };
 
@@ -19,23 +19,11 @@ impl Rule for SvarDirgha {
         let merged_str = self.data.merged.as_str();
         let merged_char = self.data.merged.as_char();
 
-        if !ends_with(left, &self.data.merged) {
+        if !ends_with_soundclass(left, &self.data.merged) {
             return None;
         }
 
-        let base = {
-            let mut b = left.trim_end_matches(merged_char).to_string();
-
-            if let Some(str) = merged_str {
-                b = b.trim_end_matches(str).to_string();
-            }
-
-            if let Some(str) = self.data.left.as_str() {
-                b = b.to_string() + str;
-            }
-
-            nfc(b)
-        };
+        let base = trim_end_soundclass(&left, &self.data.merged);
 
         let direct_right = if let Some(str) = self.data.right.as_str() {
             nfc(format!("{}{}", str, right))
@@ -43,7 +31,8 @@ impl Rule for SvarDirgha {
             nfc(format!("{}", right))
         };
 
-        // this is the current candidate based on the [merged] value of the rule
+        // this is the current candidate with split based on the [merged]
+        // value of the rule
         out.push(Candidate::new(
             vec![base.clone(), direct_right],
             Some(self.data),
@@ -83,10 +72,12 @@ impl Rule for SvarDirgha {
 
 impl SvarDirgha {
     pub fn rules() -> Vec<Box<dyn Rule>> {
+        // HACK: (आ ) directly at the word as a sandi is rare, so we just ignore it,
+        // split on the [Vowel] ("ा") form and not the [IndepVowel] form
+
         vec![
-            // NOTE: अ  should not be added at the end of left candidate,
-            // that's why we did't choose [IndependentVowl] for the `left`
-            // window in this rule
+            // NOTE: अ  should not be added at the end of left candidate, that's why
+            // we did't choose [IndependentVowl] for the `left` window in this rule
             Box::new(SvarDirgha {
                 data: RuleData {
                     name: "savarṇa-dīrgha-a1",
@@ -104,6 +95,26 @@ impl SvarDirgha {
                     tag: "6.1.101",
                     left: SoundClass::Vowel(Vowel::AA),
                     right: SoundClass::IndepVowel(IndepVowel::A),
+                    merged: SoundClass::Vowel(Vowel::AA),
+                },
+            }),
+            Box::new(SvarDirgha {
+                data: RuleData {
+                    name: "savarṇa-dīrgha-a3",
+                    desc: "आ  => अ + आ ",
+                    tag: "6.1.101",
+                    left: SoundClass::Vowel(Vowel::A),
+                    right: SoundClass::IndepVowel(IndepVowel::AA),
+                    merged: SoundClass::Vowel(Vowel::AA),
+                },
+            }),
+            Box::new(SvarDirgha {
+                data: RuleData {
+                    name: "savarṇa-dīrgha-a4",
+                    desc: "आ  => आ  + आ ",
+                    tag: "6.1.101",
+                    left: SoundClass::Vowel(Vowel::AA),
+                    right: SoundClass::IndepVowel(IndepVowel::AA),
                     merged: SoundClass::Vowel(Vowel::AA),
                 },
             }),

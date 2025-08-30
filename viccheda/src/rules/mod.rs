@@ -3,6 +3,7 @@ use crate::{
     split::{Candidate, Sandhi},
 };
 use unicode_normalization::UnicodeNormalization;
+use unicode_segmentation::UnicodeSegmentation;
 
 pub(crate) mod dirgha;
 
@@ -21,16 +22,71 @@ pub(crate) trait Rule: Send + Sync {
     fn apply(&self, sandhi: &Sandhi, left: &str, right: &str) -> Option<Vec<Candidate>>;
 }
 
-pub(crate) fn ends_with(s: &str, candidate: &SoundClass) -> bool {
-    if let Some(str) = candidate.as_str() {
-        if s.ends_with(str) {
+pub(crate) fn nfc<S: AsRef<str>>(s: S) -> String {
+    s.as_ref().nfc().collect()
+}
+
+pub(crate) fn ends_with_soundclass(s: &str, sc: &SoundClass) -> bool {
+    let s_n = nfc(s);
+    let grs: Vec<&str> = UnicodeSegmentation::graphemes(s_n.as_str(), true).collect();
+
+    if grs.is_empty() {
+        return false;
+    }
+
+    let last = grs.last().unwrap();
+
+    if let Some(sc_str) = sc.as_str() {
+        if nfc(last) == nfc(sc_str) {
             return true;
         }
     }
 
-    s.chars().last() == Some(candidate.as_char())
+    if last.chars().last() == Some(sc.as_char()) {
+        return true;
+    }
+
+    false
 }
 
-pub(crate) fn nfc<S: AsRef<str>>(s: S) -> String {
-    s.as_ref().nfc().collect()
+pub(crate) fn trim_end_soundclass(s: &str, sc: &SoundClass) -> String {
+    let mut s_n = nfc(s);
+    let mut grs: Vec<&str> = UnicodeSegmentation::graphemes(s_n.as_str(), true).collect();
+
+    if grs.is_empty() {
+        return s_n;
+    }
+
+    if let Some(sc_str) = sc.as_str() {
+        let sc_n = nfc(sc_str);
+
+        if grs.last().map(|g| nfc(*g)) == Some(sc_n.clone()) {
+            grs.pop();
+
+            return grs.join("");
+        }
+
+        let sc_grs: Vec<&str> = UnicodeSegmentation::graphemes(sc_n.as_str(), true).collect();
+
+        if sc_grs.len() > 1 && sc_grs.len() <= grs.len() {
+            let tail = &grs[grs.len() - sc_grs.len()..];
+            let tail_joined = tail.join("");
+
+            if nfc(tail_joined) == sc_n {
+                grs.truncate(grs.len() - sc_grs.len());
+
+                return grs.join("");
+            }
+        }
+    }
+
+    if let Some(last) = grs.last() {
+        if last.chars().last() == Some(sc.as_char()) {
+            grs.pop();
+
+            return grs.join("");
+        }
+    }
+
+    grs.join("")
 }
