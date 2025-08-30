@@ -48,7 +48,20 @@ impl Rule for SvarDirgha {
 
         for splits in sandhi.split(right) {
             if splits.len() > 1 {
-                let first_combined = format!("{}{}", self.data.left.as_str(), splits[0]);
+                let first_combined = {
+                    let lft_data = &self.data.left;
+                    let out;
+
+                    if lft_data == &SoundClass::Vowel(Vowel::A)
+                        || lft_data == &SoundClass::IndepVowel(IndepVowel::A)
+                    {
+                        out = format!("{}", splits[0]);
+                    } else {
+                        out = format!("{}{}", self.data.left.as_str(), splits[0]);
+                    }
+
+                    out
+                };
 
                 let mut cand = Vec::with_capacity(1 + splits.len());
                 cand.push(base.clone());
@@ -116,7 +129,7 @@ impl Sandhi {
                 desc: "आ  => अ + अ ",
                 tag: "6.1.101",
                 left: SoundClass::Vowel(Vowel::A),
-                right: SoundClass::Vowel(Vowel::A),
+                right: SoundClass::IndepVowel(IndepVowel::A),
                 merged: SoundClass::Vowel(Vowel::AA),
             },
         })]

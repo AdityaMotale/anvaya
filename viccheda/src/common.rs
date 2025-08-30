@@ -35,7 +35,7 @@ impl AsChar for Adjuncts {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Vowel {
     A,
     AA,
@@ -108,7 +108,7 @@ impl Vowel {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub(crate) enum IndepVowel {
     A,
     AA,
@@ -189,7 +189,7 @@ impl IndepVowel {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Consonant {
     // Gutturals (velars)
     Ka,
@@ -362,7 +362,7 @@ impl Orthography {
     pub const ASPIRATE: [Consonant; 1] = [Consonant::Ha];
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub(crate) enum SoundClass {
     Vowel(Vowel),
     IndepVowel(IndepVowel),
