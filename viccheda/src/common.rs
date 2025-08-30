@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::LazyLock};
 
 pub(crate) trait AsStr {
-    fn as_str(&self) -> &'static str;
+    fn as_str(&self) -> Option<&'static str>;
 }
 
 pub(crate) trait AsChar {
@@ -16,11 +16,11 @@ pub(crate) enum Adjuncts {
 }
 
 impl AsStr for Adjuncts {
-    fn as_str(&self) -> &'static str {
+    fn as_str(&self) -> Option<&'static str> {
         match self {
-            Adjuncts::ANUSVARA => "ं",
-            Adjuncts::VISARGA => "ः",
-            Adjuncts::VIRAMA => "्",
+            Adjuncts::ANUSVARA => Some("ं"),
+            Adjuncts::VISARGA => Some("ः"),
+            Adjuncts::VIRAMA => Some("्"),
         }
     }
 }
@@ -52,20 +52,20 @@ pub(crate) enum Vowel {
 }
 
 impl AsStr for Vowel {
-    fn as_str(&self) -> &'static str {
+    fn as_str(&self) -> Option<&'static str> {
         match self {
-            Vowel::A => unimplemented!(),
-            Vowel::AA => "ा",
-            Vowel::I => "ि",
-            Vowel::II => "ी",
-            Vowel::U => "ु",
-            Vowel::UU => "ू",
-            Vowel::R => "ृ",
-            Vowel::RR => "ॄ",
-            Vowel::E => "े",
-            Vowel::AI => "ै",
-            Vowel::O => "ो",
-            Vowel::AU => "ौ",
+            Vowel::A => None,
+            Vowel::AA => Some("ा"),
+            Vowel::I => Some("ि"),
+            Vowel::II => Some("ी"),
+            Vowel::U => Some("ु"),
+            Vowel::UU => Some("ू"),
+            Vowel::R => Some("ृ"),
+            Vowel::RR => Some("ॄ"),
+            Vowel::E => Some("े"),
+            Vowel::AI => Some("ै"),
+            Vowel::O => Some("ो"),
+            Vowel::AU => Some("ौ"),
         }
     }
 }
@@ -127,22 +127,22 @@ pub(crate) enum IndepVowel {
 }
 
 impl AsStr for IndepVowel {
-    fn as_str(&self) -> &'static str {
+    fn as_str(&self) -> Option<&'static str> {
         match self {
-            IndepVowel::A => "अ",
-            IndepVowel::AA => "आ",
-            IndepVowel::I => "इ",
-            IndepVowel::II => "ई",
-            IndepVowel::U => "उ",
-            IndepVowel::UU => "ऊ",
-            IndepVowel::R => "ऋ",
-            IndepVowel::RR => "ॠ",
-            IndepVowel::L => "ऌ",
-            IndepVowel::LL => "ॡ",
-            IndepVowel::E => "ए",
-            IndepVowel::AI => "ऐ",
-            IndepVowel::O => "ओ",
-            IndepVowel::AU => "औ",
+            IndepVowel::A => Some("अ"),
+            IndepVowel::AA => Some("आ"),
+            IndepVowel::I => Some("इ"),
+            IndepVowel::II => Some("ई"),
+            IndepVowel::U => Some("उ"),
+            IndepVowel::UU => Some("ऊ"),
+            IndepVowel::R => Some("ऋ"),
+            IndepVowel::RR => Some("ॠ"),
+            IndepVowel::L => Some("ऌ"),
+            IndepVowel::LL => Some("ॡ"),
+            IndepVowel::E => Some("ए"),
+            IndepVowel::AI => Some("ऐ"),
+            IndepVowel::O => Some("ओ"),
+            IndepVowel::AU => Some("औ"),
         }
     }
 }
@@ -169,22 +169,22 @@ impl AsChar for IndepVowel {
 }
 
 impl IndepVowel {
-    fn to_vowel(&self) -> Vowel {
+    fn to_vowel(&self) -> Option<Vowel> {
         match self {
-            IndepVowel::A => Vowel::A,
-            IndepVowel::AA => Vowel::AA,
-            IndepVowel::I => Vowel::I,
-            IndepVowel::II => Vowel::II,
-            IndepVowel::U => Vowel::U,
-            IndepVowel::UU => Vowel::UU,
-            IndepVowel::R => Vowel::R,
-            IndepVowel::RR => Vowel::RR,
-            IndepVowel::E => Vowel::E,
-            IndepVowel::AI => Vowel::AI,
-            IndepVowel::O => Vowel::O,
-            IndepVowel::AU => Vowel::AU,
-            IndepVowel::L => unimplemented!(),
-            IndepVowel::LL => unimplemented!(),
+            IndepVowel::A => Some(Vowel::A),
+            IndepVowel::AA => Some(Vowel::AA),
+            IndepVowel::I => Some(Vowel::I),
+            IndepVowel::II => Some(Vowel::II),
+            IndepVowel::U => Some(Vowel::U),
+            IndepVowel::UU => Some(Vowel::UU),
+            IndepVowel::R => Some(Vowel::R),
+            IndepVowel::RR => Some(Vowel::RR),
+            IndepVowel::E => Some(Vowel::E),
+            IndepVowel::AI => Some(Vowel::AI),
+            IndepVowel::O => Some(Vowel::O),
+            IndepVowel::AU => Some(Vowel::AU),
+            IndepVowel::L => None,
+            IndepVowel::LL => None,
         }
     }
 }
@@ -240,54 +240,54 @@ pub(crate) enum Consonant {
 }
 
 impl AsStr for Consonant {
-    fn as_str(&self) -> &'static str {
+    fn as_str(&self) -> Option<&'static str> {
         match self {
             // Gutturals
-            Consonant::Ka => "क",
-            Consonant::Kha => "ख",
-            Consonant::Ga => "ग",
-            Consonant::Gha => "घ",
-            Consonant::Nga => "ङ",
+            Consonant::Ka => Some("क"),
+            Consonant::Kha => Some("ख"),
+            Consonant::Ga => Some("ग"),
+            Consonant::Gha => Some("घ"),
+            Consonant::Nga => Some("ङ"),
 
             // Palatals
-            Consonant::Cha => "च",
-            Consonant::Chha => "छ",
-            Consonant::Ja => "ज",
-            Consonant::Jha => "झ",
-            Consonant::Nya => "ञ",
+            Consonant::Cha => Some("च"),
+            Consonant::Chha => Some("छ"),
+            Consonant::Ja => Some("ज"),
+            Consonant::Jha => Some("झ"),
+            Consonant::Nya => Some("ञ"),
 
             // Retroflex
-            Consonant::Tta => "ट",
-            Consonant::Ttha => "ठ",
-            Consonant::Dda => "ड",
-            Consonant::Ddha => "ढ",
-            Consonant::Nna => "ण",
+            Consonant::Tta => Some("ट"),
+            Consonant::Ttha => Some("ठ"),
+            Consonant::Dda => Some("ड"),
+            Consonant::Ddha => Some("ढ"),
+            Consonant::Nna => Some("ण"),
 
             // Dentals
-            Consonant::Ta => "त",
-            Consonant::Tha => "थ",
-            Consonant::Da => "द",
-            Consonant::Dha => "ध",
-            Consonant::Na => "न",
+            Consonant::Ta => Some("त"),
+            Consonant::Tha => Some("थ"),
+            Consonant::Da => Some("द"),
+            Consonant::Dha => Some("ध"),
+            Consonant::Na => Some("न"),
 
             // Labials
-            Consonant::Pa => "प",
-            Consonant::Pha => "फ",
-            Consonant::Ba => "ब",
-            Consonant::Bha => "भ",
-            Consonant::Ma => "म",
+            Consonant::Pa => Some("प"),
+            Consonant::Pha => Some("फ"),
+            Consonant::Ba => Some("ब"),
+            Consonant::Bha => Some("भ"),
+            Consonant::Ma => Some("म"),
 
             // Semi-vowels
-            Consonant::Ya => "य",
-            Consonant::Ra => "र",
-            Consonant::La => "ल",
-            Consonant::Va => "व",
+            Consonant::Ya => Some("य"),
+            Consonant::Ra => Some("र"),
+            Consonant::La => Some("ल"),
+            Consonant::Va => Some("व"),
 
             // Sibilants + Aspirate
-            Consonant::Sha => "श",
-            Consonant::Ssa => "ष",
-            Consonant::Sa => "स",
-            Consonant::Ha => "ह",
+            Consonant::Sha => Some("श"),
+            Consonant::Ssa => Some("ष"),
+            Consonant::Sa => Some("स"),
+            Consonant::Ha => Some("ह"),
         }
     }
 }
@@ -370,7 +370,7 @@ pub(crate) enum SoundClass {
 }
 
 impl AsStr for SoundClass {
-    fn as_str(&self) -> &'static str {
+    fn as_str(&self) -> Option<&'static str> {
         match self {
             SoundClass::Vowel(v) => v.as_str(),
             SoundClass::IndepVowel(v) => v.as_str(),
