@@ -1,11 +1,12 @@
 use crate::{
     common::{AsChar, AsStr, SoundClass},
-    split::Sandhi,
+    split::{Candidate, Sandhi},
 };
+use unicode_normalization::UnicodeNormalization;
 
 pub(crate) mod dirgha;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct RuleData {
     pub name: &'static str,
     pub desc: &'static str,
@@ -17,7 +18,7 @@ pub(crate) struct RuleData {
 
 pub(crate) trait Rule: Send + Sync {
     fn data(&self) -> &RuleData;
-    fn apply(&self, sandhi: &Sandhi, left: &str, right: &str) -> Option<Vec<Vec<String>>>;
+    fn apply(&self, sandhi: &Sandhi, left: &str, right: &str) -> Option<Vec<Candidate>>;
 }
 
 pub(crate) fn ends_with(s: &str, candidate: &SoundClass) -> bool {
@@ -28,4 +29,8 @@ pub(crate) fn ends_with(s: &str, candidate: &SoundClass) -> bool {
     }
 
     s.chars().last() == Some(candidate.as_char())
+}
+
+pub(crate) fn nfc<S: AsRef<str>>(s: S) -> String {
+    s.as_ref().nfc().collect()
 }

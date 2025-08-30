@@ -9,6 +9,18 @@ pub(crate) struct Sandhi {
     rules: Vec<Box<dyn Rule>>,
 }
 
+#[derive(Debug, Clone)]
+pub(crate) struct Candidate {
+    pub splits: Vec<String>,
+    pub rule: Option<RuleData>,
+}
+
+impl Candidate {
+    pub fn new(splits: Vec<String>, rule: Option<RuleData>) -> Self {
+        Self { splits, rule }
+    }
+}
+
 impl Sandhi {
     pub fn new() -> Self {
         Self {
@@ -16,14 +28,15 @@ impl Sandhi {
         }
     }
 
-    pub fn split(&self, morpheme: &str) -> Vec<Vec<String>> {
-        let mut results: Vec<Vec<String>> = Vec::new();
+    pub fn split(&self, morpheme: &str) -> Option<Vec<Candidate>> {
+        let mut results: Vec<Candidate> = Vec::new();
         let mut seen: HashSet<String> = HashSet::new();
+
         let graphemes: Vec<&str> = UnicodeSegmentation::graphemes(morpheme, true).collect();
 
         // sanity check
         if graphemes.len() < 2 {
-            return results;
+            return None;
         }
 
         let mut seen: HashSet<String> = HashSet::new();
@@ -35,7 +48,8 @@ impl Sandhi {
             for rule in &self.rules {
                 if let Some(candidates) = rule.apply(self, &left, &right) {
                     for cand in candidates {
-                        let key = cand.join("|");
+                        let key = cand.splits.join("|");
+
                         if seen.insert(key) {
                             results.push(cand);
                         }
@@ -44,35 +58,14 @@ impl Sandhi {
             }
         }
 
-        results
+        Some(results)
     }
 
     fn get_rules() -> Vec<Box<dyn Rule>> {
-        vec![
-            // NOTE: अ  should not be added at the end of left candidate,
-            // that's why we did't choose [IndependentVowl] for the `left`
-            // window in this rule
-            Box::new(SvarDirgha {
-                data: RuleData {
-                    name: "savarṇa-dīrgha-a1",
-                    desc: "आ  => अ + अ ",
-                    tag: "6.1.101",
-                    left: SoundClass::Vowel(Vowel::A),
-                    right: SoundClass::IndepVowel(IndepVowel::A),
-                    merged: SoundClass::Vowel(Vowel::AA),
-                },
-            }),
-            Box::new(SvarDirgha {
-                data: RuleData {
-                    name: "savarṇa-dīrgha-a2",
-                    desc: "आ  => आ  + अ ",
-                    tag: "6.1.101",
-                    left: SoundClass::Vowel(Vowel::AA),
-                    right: SoundClass::Vowel(Vowel::A),
-                    merged: SoundClass::Vowel(Vowel::AA),
-                },
-            }),
-        ]
+        let mut rules = Vec::new();
+        rules.extend(SvarDirgha::rules());
+
+        rules
     }
 }
 
@@ -81,12 +74,13 @@ mod sandhi_tests {
     use super::*;
 
     #[test]
-    fn test_split_cases_a1() {
+    fn test_split_cases() {
         let sandhi = Sandhi::new();
 
-        // each case: input word, expected candidate segmentations
+        // each case: input word, expected candidate segmentations (pieces)
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("प्रार्थी", vec![vec!["प्र", "अर्थी"]]),
+            ("श्रद्धास्ति", vec![vec!["श्रद्धा", "अस्ति"]]),
             (
                 "रामानुजः",
                 vec![
@@ -97,57 +91,52 @@ mod sandhi_tests {
             ),
         ];
 
-        for (morpheme, expected) in cases {
-            let candidates = sandhi.split(morpheme);
+        for (morpheme, expected_list) in cases {
+            // split now returns Option<Vec<Candidate>>
+            let candidates = match sandhi.split(morpheme) {
+                Some(c) => c,
+                None => {
+                    panic!("split returned None for morpheme '{}'", morpheme);
+                }
+            };
 
-            // normalization for easier debug/comparison
-            let cand_sets: Vec<String> = candidates.into_iter().map(|seg| seg.join("|")).collect();
+            // normalized keys for contains-check
+            let cand_keys: Vec<String> = candidates
+                .iter()
+                .map(|cand| cand.splits.join("|"))
+                .collect();
 
-            for exp in expected {
-                let key = exp.join("|");
+            for expected in expected_list {
+                let expected_key = expected.join("|");
 
-                assert!(
-                    cand_sets.contains(&key),
-                    "morpheme '{}' missing expected split {:?}",
-                    morpheme,
-                    exp
-                );
-            }
-        }
-    }
+                if !cand_keys.contains(&expected_key) {
+                    let mut debug = String::new();
 
-    #[test]
-    fn test_split_cases_a2() {
-        let sandhi = Sandhi::new();
+                    for (i, cand) in candidates.iter().enumerate() {
+                        let joined = cand.splits.join(" | ");
 
-        // each case: input word, expected candidate segmentations
-        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
-            ("प्रार्थी", vec![vec!["प्र", "अर्थी"]]),
-            (
-                "रामानुजः",
-                vec![
-                    vec!["र", "अमानुजः"],
-                    vec!["र", "म", "अनुजः"],
-                    vec!["राम", "अनुजः"],
-                ],
-            ),
-        ];
+                        if let Some(rule) = cand.rule {
+                            let rule_name = rule.name;
+                            let rule_tag = rule.tag;
+                            let left_sc = rule.left.as_str().unwrap_or("<none>");
+                            let right_sc = rule.right.as_str().unwrap_or("<none>");
+                            let merged_sc = rule.merged.as_str().unwrap_or("<none>");
 
-        for (morpheme, expected) in cases {
-            let candidates = sandhi.split(morpheme);
+                            debug.push_str(&format!(
+                            "candidate {}: {}\n  rule: {} (tag {})\n  left/right/merged: {} / {} / {}\n\n",
+                            i, joined, rule_name, rule_tag, left_sc, right_sc, merged_sc
+                        ));
+                        }
+                    }
 
-            // normalization for easier debug/comparison
-            let cand_sets: Vec<String> = candidates.into_iter().map(|seg| seg.join("|")).collect();
-
-            for exp in expected {
-                let key = exp.join("|");
-
-                assert!(
-                    cand_sets.contains(&key),
-                    "morpheme '{}' missing expected split {:?}",
-                    morpheme,
-                    exp
-                );
+                    panic!(
+                        "morpheme '{}' missing expected split [{}]\nExpected key: '{}'\nActual candidates (normalized):\n{}\n",
+                        morpheme,
+                        expected.join(", "),
+                        expected_key,
+                        debug
+                    );
+                }
             }
         }
     }

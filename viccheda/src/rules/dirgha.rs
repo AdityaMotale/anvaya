@@ -1,7 +1,7 @@
 use crate::{
-    common::{AsChar, AsStr},
-    rules::{ends_with, Rule, RuleData},
-    split::Sandhi,
+    common::{AsChar, AsStr, Consonant, IndepVowel, SoundClass, Vowel},
+    rules::{ends_with, nfc, Rule, RuleData},
+    split::{Candidate, Sandhi},
 };
 
 pub(crate) struct SvarDirgha {
@@ -13,7 +13,7 @@ impl Rule for SvarDirgha {
         &self.data
     }
 
-    fn apply(&self, sandhi: &Sandhi, left: &str, right: &str) -> Option<Vec<Vec<String>>> {
+    fn apply(&self, sandhi: &Sandhi, left: &str, right: &str) -> Option<Vec<Candidate>> {
         let mut out = Vec::new();
 
         let merged_str = self.data.merged.as_str();
@@ -24,54 +24,89 @@ impl Rule for SvarDirgha {
         }
 
         let base = {
-            let mut b = left.trim_end_matches(merged_char);
+            let mut b = left.trim_end_matches(merged_char).to_string();
 
             if let Some(str) = merged_str {
-                b = b.trim_end_matches(str);
+                b = b.trim_end_matches(str).to_string();
             }
 
-            b.to_string()
-        };
-
-        let direct_right = {
-            let out;
-
-            if let Some(str) = self.data.right.as_str() {
-                out = format!("{}{}", str, right);
-            } else {
-                out = format!("{}", right);
+            if let Some(str) = self.data.left.as_str() {
+                b = b.to_string() + str;
             }
 
-            out
+            nfc(b)
         };
 
-        // first candidate
-        out.push(vec![base.clone(), direct_right]);
+        let direct_right = if let Some(str) = self.data.right.as_str() {
+            nfc(format!("{}{}", str, right))
+        } else {
+            nfc(format!("{}", right))
+        };
 
-        for splits in sandhi.split(right) {
-            if splits.len() > 1 {
-                let first_combined = {
-                    let lft_data = &self.data.left;
-                    let out;
+        // this is the current candidate based on the [merged] value of the rule
+        out.push(Candidate::new(
+            vec![base.clone(), direct_right],
+            Some(self.data),
+        ));
 
-                    if let Some(str) = lft_data.as_str() {
-                        out = format!("{}{}", str, splits[0]);
-                    } else {
-                        out = format!("{}", splits[0]);
-                    }
+        if let Some(candidates) = sandhi.split(right) {
+            for candi in candidates {
+                if candi.splits.len() > 1 {
+                    let first_combined = {
+                        let lft_data = &self.data.left;
+                        let out;
 
-                    out
-                };
+                        if let Some(str) = lft_data.as_str() {
+                            out = format!("{}{}", str, candi.splits[0]);
+                        } else {
+                            out = format!("{}", candi.splits[0]);
+                        }
 
-                let mut cand = Vec::with_capacity(1 + splits.len());
-                cand.push(base.clone());
-                cand.push(first_combined);
-                cand.extend(splits.into_iter().skip(1));
+                        out
+                    };
 
-                out.push(cand);
+                    let mut cand: Candidate =
+                        Candidate::new(Vec::with_capacity(1 + candi.splits.len()), candi.rule);
+
+                    cand.splits.push(base.clone());
+                    cand.splits.push(first_combined);
+                    cand.splits.extend(candi.splits.into_iter().skip(1));
+
+                    out.push(cand);
+                }
             }
         }
 
         Some(out)
+    }
+}
+
+impl SvarDirgha {
+    pub fn rules() -> Vec<Box<dyn Rule>> {
+        vec![
+            // NOTE: अ  should not be added at the end of left candidate,
+            // that's why we did't choose [IndependentVowl] for the `left`
+            // window in this rule
+            Box::new(SvarDirgha {
+                data: RuleData {
+                    name: "savarṇa-dīrgha-a1",
+                    desc: "आ  => अ + अ ",
+                    tag: "6.1.101",
+                    left: SoundClass::Vowel(Vowel::A),
+                    right: SoundClass::IndepVowel(IndepVowel::A),
+                    merged: SoundClass::Vowel(Vowel::AA),
+                },
+            }),
+            Box::new(SvarDirgha {
+                data: RuleData {
+                    name: "savarṇa-dīrgha-a2",
+                    desc: "आ  => आ  + अ ",
+                    tag: "6.1.101",
+                    left: SoundClass::Vowel(Vowel::AA),
+                    right: SoundClass::IndepVowel(IndepVowel::A),
+                    merged: SoundClass::Vowel(Vowel::AA),
+                },
+            }),
+        ]
     }
 }
