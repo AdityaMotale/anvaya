@@ -1,32 +1,74 @@
-use crate::common::{Adjuncts, AsChar, AsStr, Consonant, IndepVowel, Orthography, Vowel};
-use std::{
-    char,
-    collections::{HashMap, HashSet},
-    fmt::Write,
-    sync::LazyLock,
-};
+use crate::common::{AsChar, AsStr, IndepVowel, SoundClass, Vowel};
+use std::collections::HashSet;
 use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Debug)]
-enum SoundClass {
-    Vowel(Vowel),
-    IndepVowel(IndepVowel),
-    Consonent(Consonant),
-}
-
-#[derive(Debug)]
-struct Rule {
+pub struct RuleData {
     name: &'static str,
     desc: &'static str,
     tag: &'static str,
     left: SoundClass,
     right: SoundClass,
     merged: SoundClass,
-    outputs: Vec<(SoundClass, SoundClass)>,
 }
 
-struct Sandhi {
-    rules: Vec<Rule>,
+pub trait Rule: Send + Sync {
+    fn data(&self) -> &RuleData;
+    fn apply(&self, sandhi: &Sandhi, left: &str, right: &str) -> Vec<Vec<String>>;
+}
+
+pub struct SvarDirgha {
+    pub data: RuleData,
+}
+
+impl Rule for SvarDirgha {
+    fn data(&self) -> &RuleData {
+        &self.data
+    }
+
+    fn apply(&self, sandhi: &Sandhi, left: &str, right: &str) -> Vec<Vec<String>> {
+        let mut out = Vec::new();
+
+        let merged_str = self.data.merged.as_str();
+        let merged_char = self.data.merged.as_char();
+
+        if !ends_with(left, (merged_str, merged_char)) {
+            return out;
+        }
+
+        let base = left
+            .trim_end_matches(merged_str)
+            .trim_end_matches(merged_char)
+            .to_string();
+
+        let direct_right = format!("{}{}", self.data.right.as_str(), right);
+
+        // first candidate
+        out.push(vec![base.clone(), direct_right]);
+
+        for splits in sandhi.split(right) {
+            if splits.len() > 1 {
+                let first_combined = format!("{}{}", self.data.left.as_str(), splits[0]);
+
+                let mut cand = Vec::with_capacity(1 + splits.len());
+                cand.push(base.clone());
+                cand.push(first_combined);
+                cand.extend(splits.into_iter().skip(1));
+
+                out.push(cand);
+            }
+        }
+
+        out
+    }
+}
+
+fn ends_with(s: &str, candidates: (&str, char)) -> bool {
+    s.ends_with(candidates.0) || s.chars().last() == Some(candidates.1)
+}
+
+pub(crate) struct Sandhi {
+    rules: Vec<Box<dyn Rule>>,
 }
 
 impl Sandhi {
@@ -36,57 +78,29 @@ impl Sandhi {
         }
     }
 
-    fn split(&self, morpheme: &str) -> Vec<Vec<String>> {
-        fn ends_with_aa(s: &str) -> bool {
-            s.ends_with(IndepVowel::AA.as_str()) || s.chars().last() == Some(Vowel::AA.as_char())
-        }
-
+    pub fn split(&self, morpheme: &str) -> Vec<Vec<String>> {
+        let mut results: Vec<Vec<String>> = Vec::new();
+        let mut seen: HashSet<String> = HashSet::new();
         let graphemes: Vec<&str> = UnicodeSegmentation::graphemes(morpheme, true).collect();
 
+        // sanity check
         if graphemes.len() < 2 {
-            return vec![vec![morpheme.to_string()]];
+            return results;
         }
 
-        let mut results: Vec<Vec<String>> = Vec::new();
         let mut seen: HashSet<String> = HashSet::new();
 
         for i in 1..graphemes.len() {
             let left = graphemes[..i].join("");
             let right = graphemes[i..].join("");
 
-            if ends_with_aa(&left) {
-                let base = left
-                    .trim_end_matches(IndepVowel::AA.as_str())
-                    .trim_end_matches(Vowel::AA.as_str())
-                    .to_string();
+            for rule in &self.rules {
+                let candidates = rule.apply(self, &left, &right);
 
-                let direct_right = format!("{}{}", IndepVowel::A.as_str(), right);
-                let direct = vec![base.clone(), direct_right.clone()];
-                let key_direct = direct.join("|");
-
-                if seen.insert(key_direct) {
-                    results.push(direct);
-                }
-
-                let recs = self.split(&right);
-
-                for rec in recs {
-                    if rec.len() >= 2 {
-                        let first_combined = format!("{}{}", IndepVowel::A.as_str(), rec[0]);
-                        let mut cand = Vec::with_capacity(2 + rec.len() - 1);
-
-                        cand.push(base.clone());
-                        cand.push(first_combined);
-
-                        for piece in rec.iter().skip(1) {
-                            cand.push(piece.clone());
-                        }
-
-                        let key = cand.join("|");
-
-                        if seen.insert(key) {
-                            results.push(cand);
-                        }
+                for cand in candidates {
+                    let key = cand.join("|");
+                    if seen.insert(key) {
+                        results.push(cand);
                     }
                 }
             }
@@ -95,22 +109,38 @@ impl Sandhi {
         results
     }
 
-    fn get_rules() -> Vec<Rule> {
-        vec![Rule {
-            name: "savarṇa-dīrgha-a",
-            desc: "आ  => अ + अ ",
-            tag: "6.1.101",
-            left: SoundClass::Vowel(Vowel::A),
-            right: SoundClass::Vowel(Vowel::A),
-            merged: SoundClass::Vowel(Vowel::AA),
-            outputs: vec![(SoundClass::Vowel(Vowel::A), SoundClass::Vowel(Vowel::A))],
-        }]
+    fn get_rules() -> Vec<Box<dyn Rule>> {
+        vec![Box::new(SvarDirgha {
+            data: RuleData {
+                name: "savarṇa-dīrgha-a1",
+                desc: "आ  => अ + अ ",
+                tag: "6.1.101",
+                left: SoundClass::Vowel(Vowel::A),
+                right: SoundClass::Vowel(Vowel::A),
+                merged: SoundClass::Vowel(Vowel::AA),
+            },
+        })]
     }
 }
 
 #[cfg(test)]
 mod sandhi_tests {
     use super::*;
+
+    // #[test]
+    // fn test_split() {
+    //     let sandhi = Sandhi::new();
+    //     let morpheme = "प्रार्थी";
+    //     let results: Vec<String> = ["प्र", "अर्थी"].iter().map(|s| s.to_string()).collect();
+
+    //     let candidates = sandhi.split(morpheme);
+
+    //     for segs in candidates {
+    //         for res in &results {
+    //             assert!(segs.contains(res));
+    //         }
+    //     }
+    // }
 
     #[test]
     fn test_split() {

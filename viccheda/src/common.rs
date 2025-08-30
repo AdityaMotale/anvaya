@@ -361,3 +361,30 @@ impl Orthography {
 
     pub const ASPIRATE: [Consonant; 1] = [Consonant::Ha];
 }
+
+#[derive(Debug)]
+pub(crate) enum SoundClass {
+    Vowel(Vowel),
+    IndepVowel(IndepVowel),
+    Consonent(Consonant),
+}
+
+impl AsStr for SoundClass {
+    fn as_str(&self) -> &'static str {
+        match self {
+            SoundClass::Vowel(v) => v.as_str(),
+            SoundClass::IndepVowel(v) => v.as_str(),
+            SoundClass::Consonent(c) => c.as_str(),
+        }
+    }
+}
+
+impl AsChar for SoundClass {
+    fn as_char(&self) -> char {
+        match self {
+            SoundClass::Vowel(v) => v.as_char(),
+            SoundClass::IndepVowel(v) => v.as_char(),
+            SoundClass::Consonent(c) => unimplemented!(),
+        }
+    }
+}
