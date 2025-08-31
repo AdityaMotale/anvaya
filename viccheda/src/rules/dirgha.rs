@@ -44,6 +44,7 @@ impl Rule for SvarDirgha {
 
         // candidate with original left (keep merged)
         let key_left = format!("{}|{}", left, direct_right);
+
         if pushed.insert(key_left.clone()) {
             out.push(Candidate::new(
                 vec![left.to_string(), direct_right.clone()],
@@ -53,10 +54,17 @@ impl Rule for SvarDirgha {
 
         // candidate with trimmed base (drop merged) — only if base != left
         if base != left {
-            let key_base = format!("{}|{}", base, direct_right);
-            if pushed.insert(key_base.clone()) {
+            let left_with_sound = if let Some(str) = self.data.left.as_str() {
+                RuleUtils::nfc(format!("{}{}", base, str))
+            } else {
+                base.clone()
+            };
+
+            let key_base = format!("{}|{}", left_with_sound, direct_right);
+
+            if pushed.insert(key_base) {
                 out.push(Candidate::new(
-                    vec![base.clone(), direct_right.clone()],
+                    vec![left_with_sound, direct_right.clone()],
                     Some(self.data),
                 ));
             }
@@ -100,7 +108,6 @@ impl SvarDirgha {
 
         rls.extend(Self::aa_to_a_a_rules());
         rls.extend(Self::ii_to_i_i_rules());
-        // rls.extend(Self::ii_to_ii_i_rules());
 
         rls
     }
@@ -192,53 +199,6 @@ impl SvarDirgha {
             Box::new(SvarDirgha {
                 data: RuleData {
                     name: "savarṇa-dīrgha-i4",
-                    desc: "ई => ई + ई",
-                    tag: "6.1.101",
-                    left: SoundClass::Vowel(Vowel::II),
-                    right: SoundClass::IndepVowel(IndepVowel::II),
-                    merged: SoundClass::Vowel(Vowel::II),
-                },
-            }),
-        ]
-    }
-
-    fn ii_to_ii_i_rules() -> Vec<Box<dyn Rule>> {
-        vec![
-            // NOTE: इ should not be added at the end of left candidate, that's why
-            // we did't choose [IndependentVowl] for the `left` window in this rule
-            Box::new(SvarDirgha {
-                data: RuleData {
-                    name: "savarṇa-dīrgha-E1",
-                    desc: "ई => इ + इ",
-                    tag: "6.1.101",
-                    left: SoundClass::Vowel(Vowel::I),
-                    right: SoundClass::IndepVowel(IndepVowel::I),
-                    merged: SoundClass::Vowel(Vowel::II),
-                },
-            }),
-            Box::new(SvarDirgha {
-                data: RuleData {
-                    name: "savarṇa-dīrgha-E2",
-                    desc: "ई => ई + इ",
-                    tag: "6.1.101",
-                    left: SoundClass::Vowel(Vowel::II),
-                    right: SoundClass::IndepVowel(IndepVowel::I),
-                    merged: SoundClass::Vowel(Vowel::II),
-                },
-            }),
-            Box::new(SvarDirgha {
-                data: RuleData {
-                    name: "savarṇa-dīrgha-E3",
-                    desc: "ई => इ + ई",
-                    tag: "6.1.101",
-                    left: SoundClass::Vowel(Vowel::I),
-                    right: SoundClass::IndepVowel(IndepVowel::II),
-                    merged: SoundClass::Vowel(Vowel::II),
-                },
-            }),
-            Box::new(SvarDirgha {
-                data: RuleData {
-                    name: "savarṇa-dīrgha-E4",
                     desc: "ई => ई + ई",
                     tag: "6.1.101",
                     left: SoundClass::Vowel(Vowel::II),
