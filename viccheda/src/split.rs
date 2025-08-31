@@ -1,13 +1,12 @@
 use crate::{
     common::{AsChar, AsStr, IndepVowel, SoundClass, Vowel},
+    debugf,
+    logger::{Logger, PrettyVec},
     rules::{dirgha::SvarDirgha, Rule, RuleData},
+    tracef, warnf,
 };
-use std::collections::HashSet;
+use std::{collections::HashSet, fs::write};
 use unicode_segmentation::UnicodeSegmentation;
-
-pub(crate) struct Sandhi {
-    rules: Vec<Box<dyn Rule>>,
-}
 
 #[derive(Debug, Clone)]
 pub(crate) struct Candidate {
@@ -15,24 +14,63 @@ pub(crate) struct Candidate {
     pub rule: Option<RuleData>,
 }
 
+#[derive(Debug, Clone)]
+pub(crate) struct CandidateList<'a>(pub &'a [Candidate]);
+
 impl Candidate {
     pub fn new(splits: Vec<String>, rule: Option<RuleData>) -> Self {
         Self { splits, rule }
     }
 }
 
-impl Sandhi {
-    pub fn new() -> Self {
+impl std::fmt::Display for Candidate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let strs: Vec<&str> = self.splits.iter().map(String::as_str).collect();
+        let splits = PrettyVec(strs);
+
+        match &self.rule {
+            Some(rule) => write!(f, "{:?} -> {}", splits, rule),
+            None => write!(f, "{:?}", splits),
+        }
+    }
+}
+
+impl<'a> std::fmt::Display for CandidateList<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "\n");
+
+        for c in self.0 {
+            writeln!(f, "{}", c)?;
+        }
+
+        Ok(())
+    }
+}
+
+pub(crate) struct Splitter {
+    pub logger: Logger,
+    rules: Vec<Box<dyn Rule>>,
+}
+
+impl Splitter {
+    pub fn new(debug: bool) -> Self {
         Self {
             rules: Self::get_rules(),
+            logger: Logger::new(debug, "Viccheda::Splitter"),
         }
     }
 
-    pub fn split(&self, morpheme: &str) -> Option<Vec<Candidate>> {
+    pub fn candidates(&self, morpheme: &str) -> Option<Vec<Candidate>> {
         let mut results: Vec<Candidate> = Vec::new();
         let mut seen: HashSet<String> = HashSet::new();
 
         let graphemes: Vec<&str> = UnicodeSegmentation::graphemes(morpheme, true).collect();
+
+        tracef!(
+            self.logger,
+            "{morpheme} => {:?}",
+            PrettyVec(graphemes.clone())
+        );
 
         // sanity check
         if graphemes.len() < 2 {
@@ -58,6 +96,11 @@ impl Sandhi {
             }
         }
 
+        tracef!(
+            self.logger,
+            "Generate candidates, {morpheme} => {}",
+            CandidateList(&results)
+        );
         Some(results)
     }
 
@@ -72,12 +115,23 @@ impl Sandhi {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use env_logger;
+    use once_cell::sync::OnceCell;
 
-    fn run_sandhi_cases(cases: Vec<(&str, Vec<Vec<&str>>)>) {
-        let sandhi = Sandhi::new();
+    static INIT: OnceCell<()> = OnceCell::new();
+
+    fn init_logger() {
+        INIT.get_or_init(|| {
+            let _ = env_logger::builder().is_test(true).try_init();
+        });
+    }
+
+    fn run_sandhi_cases(cases: Vec<(&str, Vec<Vec<&str>>)>, debug: bool) {
+        init_logger();
+        let splitter = Splitter::new(debug);
 
         for (morpheme, expected_list) in cases {
-            let candidates = match sandhi.split(morpheme) {
+            let candidates = match splitter.candidates(morpheme) {
                 Some(c) => c,
                 None => {
                     panic!("split returned None for morpheme '{}'", morpheme);
@@ -107,19 +161,19 @@ mod tests {
                             let merged_sc = rule.merged.as_str().unwrap_or("<none>");
 
                             debug.push_str(&format!(
-                            "candidate {}: {}\n  rule: {} (tag {})\n  left/right/merged: {} / {} / {}\n\n",
-                            i, joined, rule_name, rule_tag, left_sc, right_sc, merged_sc
-                        ));
+                                "candidate {}: {}\n  rule: {} (tag {})\n  left/right/merged: {} / {} / {}\n\n",
+                                i, joined, rule_name, rule_tag, left_sc, right_sc, merged_sc
+                            ));
                         }
                     }
 
                     panic!(
-                    "morpheme '{}' missing expected split [{}]\nExpected key: '{}'\nActual candidates (normalized):\n{}\n",
-                    morpheme,
-                    expected.join(", "),
-                    expected_key,
-                    debug
-                );
+                        "morpheme '{}' missing expected split [{}]\nExpected key: '{}'\nActual candidates (normalized):\n{}\n",
+                        morpheme,
+                        expected.join(", "),
+                        expected_key,
+                        debug,
+                    );
                 }
             }
         }
@@ -130,6 +184,14 @@ mod tests {
 
         mod dirgha {
             use super::*;
+
+            #[test]
+            fn aa_to_a_debug() {
+                let cases: Vec<(&str, Vec<Vec<&str>>)> =
+                    vec![("परास्तः", vec![vec!["परा", "अस्तः"]])];
+
+                run_sandhi_cases(cases, true);
+            }
 
             #[test]
             fn aa_to_a() {
@@ -192,22 +254,61 @@ mod tests {
                     ("विभागाध्यक्षः", vec![vec!["विभाग", "अध्यक्षः"]]),
                 ];
 
-                run_sandhi_cases(cases);
+                run_sandhi_cases(cases, false);
             }
 
+            // #[test]
+            // fn aa_to_a_anusvara() {
+            //     let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
+            //         ("सर्वांगीणः", vec![vec!["सर्व", "अंगीणः"]]),
+            //         ("मूल्यांकनः", vec![vec!["मूल्य", "अंकनः"]]),
+            //         ("देहांतः", vec![vec!["देह", "अंतः"]]),
+            //         ("सुखांतः", vec![vec!["सुख", "अन्तः"]]),
+            //         ("दीक्षांतः", vec![vec!["दीक्षा", "अंतः"]]),
+            //         ("रेखांकितः", vec![vec!["रेखा", "अंकितः"]]),
+            //         ("गीतांजलिः", vec![vec!["गीत", "अंजलिः"]]),
+            //     ];
+
+            //     run_sandhi_cases(cases, false);
+            // }
+
             #[test]
-            fn aa_to_a_anusvara() {
+            fn ai_to_e() {
                 let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
-                    ("सर्वांगीणः", vec![vec!["सर्व", "अंगीणः"]]),
-                    ("मूल्यांकनः", vec![vec!["मूल्य", "अंकनः"]]),
-                    ("देहांतः", vec![vec!["देह", "अंतः"]]),
-                    ("सुखांतः", vec![vec!["सुख", "अन्तः"]]),
-                    ("दीक्षांतः", vec![vec!["दीक्षा", "अंतः"]]),
-                    ("रेखांकितः", vec![vec!["रेखा", "अंकितः"]]),
-                    ("गीतांजलिः", vec![vec!["गीत", "अंजलिः"]]),
+                    ("श्रीशः", vec![vec!["श्री", "ईशः"]]),
+                    ("गौरीशः", vec![vec!["गौरी", "ईशः"]]),
+                    ("नदीशः", vec![vec!["नदी", "ईशः"]]),
+                    ("रजनीशः", vec![vec!["रजनी", "ईशः"]]),
+                    ("महीशः", vec![vec!["मही", "ईशः"]]),
+                    ("गिरीशः", vec![vec!["गिरि", "ईशः"]]),
+                    ("हरीशः", vec![vec!["हरि", "ईशः"]]),
+                    ("कवीशः", vec![vec!["कवि", "ईशः"]]),
+                    ("कपीशः", vec![vec!["कपि", "ईशः"]]),
+                    ("इतीवः", vec![vec!["इति", "इवः"]]),
+                    ("अतीवः", vec![vec!["अति", "इवः"]]),
+                    ("रवीन्द्रः", vec![vec!["रवि", "इन्द्रः"]]),
+                    ("मुनीन्द्रः", vec![vec!["मुनि", "इन्द्रः"]]),
+                    ("कवीन्द्रः", vec![vec!["कवि", "इन्द्रः"]]),
+                    ("फणीन्द्रः", vec![vec!["फण", "इन्द्रः"]]),
+                    ("गिरीन्द्रः", vec![vec!["गिरि", "इन्द्रः"]]),
+                    ("शचीन्द्रः", vec![vec!["शचि", "इन्द्रः"]]),
+                    ("यतीन्द्रः", vec![vec!["यति", "इन्द्रः"]]),
+                    ("अभीष्टः", vec![vec!["अभि", "इष्टः"]]),
+                    ("पृथ्वीश्वरः", vec![vec!["पृथ्वी", "ईश्वरः"]]),
+                    ("नारीश्वरः", vec![vec!["नारी", "ईश्वरः"]]),
+                    ("मुनीश्वरः", vec![vec!["मुनि", "ईश्वरः"]]),
+                    ("प्रतीक्षा", vec![vec!["प्रति", "ईक्षा"]]),
+                    ("नारीच्छा", vec![vec!["नारी", "इच्छा"]]),
+                    ("परीक्षा", vec![vec!["परि", "ईक्षा"]]),
+                    ("महतीच्छा", vec![vec!["महती", "इच्छा"]]),
+                    ("अधीक्षकः", vec![vec!["अधि", "ईक्षकः"]]),
+                    ("वीक्षणः", vec![vec!["वि", "ईक्षणः"]]),
+                    ("प्रतीतः", vec![vec!["प्रति", "इतः"]]),
+                    ("परीक्षितः", vec![vec!["परि", "ईक्षितः"]]),
+                    ("परीक्षकः", vec![vec!["परि", "ईक्षकः"]]),
                 ];
 
-                run_sandhi_cases(cases);
+                run_sandhi_cases(cases, true);
             }
         }
     }

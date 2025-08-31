@@ -1,5 +1,14 @@
 use log::{Level, Record};
 
+/// custom extension to preety print vectors for debugging
+pub(crate) struct PrettyVec<'a>(pub Vec<&'a str>);
+
+impl<'a> std::fmt::Debug for PrettyVec<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[{}]", self.0.join(", "))
+    }
+}
+
 #[derive(Clone)]
 pub(crate) struct Logger {
     pub enabled: bool,

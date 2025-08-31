@@ -1,7 +1,7 @@
 use crate::{
     common::{AsChar, AsStr, Consonant, IndepVowel, SoundClass, Vowel},
-    rules::{ends_with_soundclass, nfc, trim_end_soundclass, Rule, RuleData},
-    split::{Candidate, Sandhi},
+    rules::{Rule, RuleData, RuleUtils},
+    split::{Candidate, Splitter},
 };
 
 pub(crate) struct SvarDirgha {
@@ -13,29 +13,30 @@ impl Rule for SvarDirgha {
         &self.data
     }
 
-    fn apply(&self, sandhi: &Sandhi, left: &str, right: &str) -> Option<Vec<Candidate>> {
+    fn apply(&self, splitter: &Splitter, left: &str, right: &str) -> Option<Vec<Candidate>> {
         let mut out = Vec::new();
 
         let merged_str = self.data.merged.as_str();
         let merged_char = self.data.merged.as_char();
 
-        if !ends_with_soundclass(left, &self.data.merged) {
+        if !RuleUtils::ends_with_soundclass(left, &self.data.merged, &splitter.logger) {
             return None;
         }
 
-        let base = match trim_end_soundclass(&left, &self.data.merged) {
+        let base = match RuleUtils::trim_end_soundclass(&left, &self.data.merged, &splitter.logger)
+        {
             Some(b) => b,
             None => return None,
         };
+
         if base.is_empty() {
-            // optional: treat empty base as non-applicable
             return None;
         }
 
         let direct_right = if let Some(str) = self.data.right.as_str() {
-            nfc(format!("{}{}", str, right))
+            RuleUtils::nfc(format!("{}{}", str, right))
         } else {
-            nfc(format!("{}", right))
+            RuleUtils::nfc(format!("{}", right))
         };
 
         let mut pushed = std::collections::HashSet::new();
@@ -60,7 +61,7 @@ impl Rule for SvarDirgha {
             }
         }
 
-        if let Some(candidates) = sandhi.split(right) {
+        if let Some(candidates) = splitter.candidates(right) {
             for candi in candidates {
                 if candi.splits.len() > 1 {
                     let first_combined = {
@@ -94,6 +95,15 @@ impl Rule for SvarDirgha {
 
 impl SvarDirgha {
     pub fn rules() -> Vec<Box<dyn Rule>> {
+        let mut rules = Vec::new();
+
+        rules.extend(Self::aa_to_a_rules());
+        rules.extend(Self::ai_to_e_rules());
+
+        rules
+    }
+
+    fn aa_to_a_rules() -> Vec<Box<dyn Rule>> {
         // HACK: (आ ) directly at the word as a sandi is rare, so we just ignore it,
         // split on the [Vowel] ("ा") form and not the [IndepVowel] form
 
@@ -138,6 +148,53 @@ impl SvarDirgha {
                     left: SoundClass::Vowel(Vowel::AA),
                     right: SoundClass::IndepVowel(IndepVowel::AA),
                     merged: SoundClass::Vowel(Vowel::AA),
+                },
+            }),
+        ]
+    }
+
+    fn ai_to_e_rules() -> Vec<Box<dyn Rule>> {
+        vec![
+            // NOTE: इ should not be added at the end of left candidate, that's why
+            // we did't choose [IndependentVowl] for the `left` window in this rule
+            Box::new(SvarDirgha {
+                data: RuleData {
+                    name: "savarṇa-dīrgha-e1",
+                    desc: "ई => इ + इ",
+                    tag: "6.1.101",
+                    left: SoundClass::Vowel(Vowel::E),
+                    right: SoundClass::IndepVowel(IndepVowel::E),
+                    merged: SoundClass::Vowel(Vowel::AI),
+                },
+            }),
+            Box::new(SvarDirgha {
+                data: RuleData {
+                    name: "savarṇa-dīrgha-e2",
+                    desc: "ई => ई + इ",
+                    tag: "6.1.101",
+                    left: SoundClass::Vowel(Vowel::AI),
+                    right: SoundClass::IndepVowel(IndepVowel::E),
+                    merged: SoundClass::Vowel(Vowel::AI),
+                },
+            }),
+            Box::new(SvarDirgha {
+                data: RuleData {
+                    name: "savarṇa-dīrgha-e3",
+                    desc: "ई => इ + ई",
+                    tag: "6.1.101",
+                    left: SoundClass::Vowel(Vowel::E),
+                    right: SoundClass::IndepVowel(IndepVowel::AI),
+                    merged: SoundClass::Vowel(Vowel::AI),
+                },
+            }),
+            Box::new(SvarDirgha {
+                data: RuleData {
+                    name: "savarṇa-dīrgha-e4",
+                    desc: "ई => ई + ई",
+                    tag: "6.1.101",
+                    left: SoundClass::Vowel(Vowel::AI),
+                    right: SoundClass::IndepVowel(IndepVowel::AI),
+                    merged: SoundClass::Vowel(Vowel::AI),
                 },
             }),
         ]
