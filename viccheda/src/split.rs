@@ -356,6 +356,30 @@ mod tests {
 
                 run_sandhi_cases(cases, false);
             }
+
+            #[test]
+            fn rr_to_r_r_debug() {
+                let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("पितृृणम्", vec![vec!["पितृ", "ऋणम्"]])];
+
+                run_sandhi_cases(cases, true);
+            }
+
+            #[test]
+            fn rr_to_r_r() {
+                let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
+                    ("होतृृकारः", vec![vec!["होतृ", "ऋकारः"]]),
+                    ("पितृृणम्", vec![vec!["पितृ", "ऋणम्"]]),
+                    ("मातृृणम्", vec![vec!["मातृ", "ऋणम्"]]),
+                    ("कर्तृृणम्", vec![vec!["कर्तृ", "ऋणम्"]]),
+                    ("कर्तृृणि", vec![vec!["कर्तृ", "ऋणि"]]),
+                    ("कर्तृृद्धिः", vec![vec!["कर्तृ", "ऋद्धि"]]),
+                    ("धातृृकारः", vec![vec!["धातृ", "ऋकारः"]]),
+                    ("भर्तृृद्धिः", vec![vec!["भर्तृ", "ऋद्धि"]]),
+                    ("होतृृषिः", vec![vec!["होतृ", "ऋषिः"]]),
+                ];
+
+                run_sandhi_cases(cases, false);
+            }
         }
     }
 }

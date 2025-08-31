@@ -109,6 +109,7 @@ impl SvarDirgha {
         rls.extend(Self::aa_to_a_a_rules());
         rls.extend(Self::ii_to_i_i_rules());
         rls.extend(Self::uu_to_u_u_rules());
+        rls.extend(Self::rr_to_r_r_rules());
 
         rls
     }
@@ -211,7 +212,6 @@ impl SvarDirgha {
     }
 
     fn uu_to_u_u_rules() -> Vec<Box<dyn Rule>> {
-        // उ /ऊ + ऊ/उ = ऊ
         vec![
             // NOTE: उ should not be added at the end of left candidate, that's why
             // we did't choose [IndependentVowl] for the `left` window in this rule
@@ -253,6 +253,53 @@ impl SvarDirgha {
                     left: SoundClass::Vowel(Vowel::UU),
                     right: SoundClass::IndepVowel(IndepVowel::UU),
                     merged: SoundClass::Vowel(Vowel::UU),
+                },
+            }),
+        ]
+    }
+
+    fn rr_to_r_r_rules() -> Vec<Box<dyn Rule>> {
+        vec![
+            // NOTE: ॠ  (IndepVowel::RR) should not be added at the end of left candidate, that's why
+            // we did't choose [IndependentVowl] for the `left` window in this rule
+            Box::new(SvarDirgha {
+                data: RuleData {
+                    name: "savarṇa-dīrgha-r1",
+                    desc: "ॠ => ॠ + ॠ ",
+                    tag: "6.1.101",
+                    left: SoundClass::Vowel(Vowel::R),
+                    right: SoundClass::IndepVowel(IndepVowel::R),
+                    merged: SoundClass::Vowel(Vowel::RR),
+                },
+            }),
+            Box::new(SvarDirgha {
+                data: RuleData {
+                    name: "savarṇa-dīrgha-r2",
+                    desc: "ॠ => ॠ + ॠ ",
+                    tag: "6.1.101",
+                    left: SoundClass::Vowel(Vowel::RR),
+                    right: SoundClass::IndepVowel(IndepVowel::R),
+                    merged: SoundClass::Vowel(Vowel::RR),
+                },
+            }),
+            Box::new(SvarDirgha {
+                data: RuleData {
+                    name: "savarṇa-dīrgha-r3",
+                    desc: "ॠ => ॠ + ॠ ",
+                    tag: "6.1.101",
+                    left: SoundClass::Vowel(Vowel::R),
+                    right: SoundClass::IndepVowel(IndepVowel::RR),
+                    merged: SoundClass::Vowel(Vowel::RR),
+                },
+            }),
+            Box::new(SvarDirgha {
+                data: RuleData {
+                    name: "savarṇa-dīrgha-r4",
+                    desc: "ॠ => ॠ + ॠ ",
+                    tag: "6.1.101",
+                    left: SoundClass::Vowel(Vowel::RR),
+                    right: SoundClass::IndepVowel(IndepVowel::RR),
+                    merged: SoundClass::Vowel(Vowel::RR),
                 },
             }),
         ]
