@@ -73,6 +73,58 @@ impl Sandhi {
 mod tests {
     use super::*;
 
+    fn run_sandhi_cases(cases: Vec<(&str, Vec<Vec<&str>>)>) {
+        let sandhi = Sandhi::new();
+
+        for (morpheme, expected_list) in cases {
+            let candidates = match sandhi.split(morpheme) {
+                Some(c) => c,
+                None => {
+                    panic!("split returned None for morpheme '{}'", morpheme);
+                }
+            };
+
+            // normalized keys for contains-check
+            let cand_keys: Vec<String> = candidates
+                .iter()
+                .map(|cand| cand.splits.join("|"))
+                .collect();
+
+            for expected in expected_list {
+                let expected_key = expected.join("|");
+
+                if !cand_keys.contains(&expected_key) {
+                    let mut debug = String::new();
+
+                    for (i, cand) in candidates.iter().enumerate() {
+                        let joined = cand.splits.join(" | ");
+
+                        if let Some(rule) = cand.rule {
+                            let rule_name = rule.name;
+                            let rule_tag = rule.tag;
+                            let left_sc = rule.left.as_str().unwrap_or("<none>");
+                            let right_sc = rule.right.as_str().unwrap_or("<none>");
+                            let merged_sc = rule.merged.as_str().unwrap_or("<none>");
+
+                            debug.push_str(&format!(
+                            "candidate {}: {}\n  rule: {} (tag {})\n  left/right/merged: {} / {} / {}\n\n",
+                            i, joined, rule_name, rule_tag, left_sc, right_sc, merged_sc
+                        ));
+                        }
+                    }
+
+                    panic!(
+                    "morpheme '{}' missing expected split [{}]\nExpected key: '{}'\nActual candidates (normalized):\n{}\n",
+                    morpheme,
+                    expected.join(", "),
+                    expected_key,
+                    debug
+                );
+                }
+            }
+        }
+    }
+
     mod swar {
         use super::*;
 
@@ -81,8 +133,6 @@ mod tests {
 
             #[test]
             fn aa_to_a() {
-                let sandhi = Sandhi::new();
-
                 let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
                     ("प्रार्थी", vec![vec!["प्र", "अर्थी"]]),
                     ("श्रद्धास्ति", vec![vec!["श्रद्धा", "अस्ति"]]),
@@ -140,63 +190,24 @@ mod tests {
                     ("परास्तः", vec![vec!["परा", "अस्तः"]]),
                     ("प्रधानाध्यापकः", vec![vec!["प्रधान", "अध्यापकः"]]),
                     ("विभागाध्यक्षः", vec![vec!["विभाग", "अध्यक्षः"]]),
-                    // ("सर्वांगीणः", vec![vec!["सर्व", "अंगीणः"]]),
-                    // ("मूल्यांकनः", vec![vec!["मूल्य", "अंकनः"]]),
-                    // ("देहांतः", vec![vec!["देह", "अंतः"]]),
-                    // ("सुखांतः", vec![vec!["सुख", "अन्तः"]]),
-                    // ("दीक्षांतः", vec![vec!["दीक्षा", "अंतः"]]),
-                    // ("रेखांकितः", vec![vec!["रेखा", "अंकितः"]]),
-                    // ("गीतांजलिः", vec![vec!["गीत", "अंजलिः"]]),
                 ];
 
-                for (morpheme, expected_list) in cases {
-                    // split now returns Option<Vec<Candidate>>
-                    let candidates = match sandhi.split(morpheme) {
-                        Some(c) => c,
-                        None => {
-                            panic!("split returned None for morpheme '{}'", morpheme);
-                        }
-                    };
+                run_sandhi_cases(cases);
+            }
 
-                    // normalized keys for contains-check
-                    let cand_keys: Vec<String> = candidates
-                        .iter()
-                        .map(|cand| cand.splits.join("|"))
-                        .collect();
+            #[test]
+            fn aa_to_a_anusvara() {
+                let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
+                    ("सर्वांगीणः", vec![vec!["सर्व", "अंगीणः"]]),
+                    ("मूल्यांकनः", vec![vec!["मूल्य", "अंकनः"]]),
+                    ("देहांतः", vec![vec!["देह", "अंतः"]]),
+                    ("सुखांतः", vec![vec!["सुख", "अन्तः"]]),
+                    ("दीक्षांतः", vec![vec!["दीक्षा", "अंतः"]]),
+                    ("रेखांकितः", vec![vec!["रेखा", "अंकितः"]]),
+                    ("गीतांजलिः", vec![vec!["गीत", "अंजलिः"]]),
+                ];
 
-                    for expected in expected_list {
-                        let expected_key = expected.join("|");
-
-                        if !cand_keys.contains(&expected_key) {
-                            let mut debug = String::new();
-
-                            for (i, cand) in candidates.iter().enumerate() {
-                                let joined = cand.splits.join(" | ");
-
-                                if let Some(rule) = cand.rule {
-                                    let rule_name = rule.name;
-                                    let rule_tag = rule.tag;
-                                    let left_sc = rule.left.as_str().unwrap_or("<none>");
-                                    let right_sc = rule.right.as_str().unwrap_or("<none>");
-                                    let merged_sc = rule.merged.as_str().unwrap_or("<none>");
-
-                                    debug.push_str(&format!(
-                            "candidate {}: {}\n  rule: {} (tag {})\n  left/right/merged: {} / {} / {}\n\n",
-                            i, joined, rule_name, rule_tag, left_sc, right_sc, merged_sc
-                        ));
-                                }
-                            }
-
-                            panic!(
-                        "morpheme '{}' missing expected split [{}]\nExpected key: '{}'\nActual candidates (normalized):\n{}\n",
-                        morpheme,
-                        expected.join(", "),
-                        expected_key,
-                        debug
-                    );
-                        }
-                    }
-                }
+                run_sandhi_cases(cases);
             }
         }
     }
