@@ -275,8 +275,15 @@ mod tests {
             //         ("गीतांजलिः", vec![vec!["गीत", "अंजलिः"]]),
             //     ];
 
-            //     run_sandhi_cases(cases, false);
+            //     run_sandhi_cases(cases, true);
             // }
+
+            #[test]
+            fn ii_to_i_i_debug() {
+                let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("श्रीशः", vec![vec!["श्री", "ईशः"]])];
+
+                run_sandhi_cases(cases, true);
+            }
 
             #[test]
             fn ii_to_i_i() {
@@ -314,7 +321,40 @@ mod tests {
                     ("परीक्षकः", vec![vec!["परि", "ईक्षकः"]]),
                 ];
 
+                run_sandhi_cases(cases, false);
+            }
+
+            #[test]
+            fn uu_to_u_u_debug() {
+                let cases: Vec<(&str, Vec<Vec<&str>>)> =
+                    vec![("विष्णूदयः", vec![vec!["विष्णु", "उदयः"]])];
+
                 run_sandhi_cases(cases, true);
+            }
+
+            #[test]
+            fn uu_to_u_u() {
+                let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
+                    ("विष्णूदयः", vec![vec!["विष्णु", "उदयः"]]),
+                    ("भानूदयः", vec![vec!["भानु", "उदयः"]]),
+                    ("भानूष्मा", vec![vec!["भानु", "ऊष्मा"]]),
+                    ("साधूपदेशः", vec![vec!["साधु", "उपदेशः"]]),
+                    ("गुरूपदेशः", vec![vec!["गुरु", "उपदेशः"]]),
+                    ("वधूत्सवः", vec![vec!["वधु", "उत्सवः"]]),
+                    ("मधूत्तमम्", vec![vec!["मधु", "उत्तमम्"]]),
+                    ("लघूत्तमम्", vec![vec!["लघु", "उत्तमम्"]]),
+                    ("विधूर्ध्वम्", vec![vec!["विधु", "उर्ध्वम्"]]),
+                    ("तरूर्ध्वम्", vec![vec!["तरु", "उर्ध्वम्"]]),
+                    ("वधूर्मिः", vec![vec!["वधू", "उर्मिः"]]),
+                    ("लघूर्मिः", vec![vec!["लघु", "उर्मिः"]]),
+                    ("सिँधूर्मिः", vec![vec!["सिँधु", "उर्मिः"]]),
+                    ("सूक्तिः", vec![vec!["सु", "उक्तिः"]]),
+                    ("वधूक्तिः", vec![vec!["वधू", "उक्तिः"]]),
+                    ("मंजूषा", vec![vec!["मंजु", "उषा"]]),
+                    ("अनूदितः", vec![vec!["अनु", "उदितः"]]),
+                ];
+
+                run_sandhi_cases(cases, false);
             }
         }
     }
