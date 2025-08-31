@@ -23,7 +23,14 @@ impl Rule for SvarDirgha {
             return None;
         }
 
-        let base = trim_end_soundclass(&left, &self.data.merged);
+        let base = match trim_end_soundclass(&left, &self.data.merged) {
+            Some(b) => b,
+            None => return None,
+        };
+        if base.is_empty() {
+            // optional: treat empty base as non-applicable
+            return None;
+        }
 
         let direct_right = if let Some(str) = self.data.right.as_str() {
             nfc(format!("{}{}", str, right))
@@ -31,12 +38,27 @@ impl Rule for SvarDirgha {
             nfc(format!("{}", right))
         };
 
-        // this is the current candidate with split based on the [merged]
-        // value of the rule
-        out.push(Candidate::new(
-            vec![base.clone(), direct_right],
-            Some(self.data),
-        ));
+        let mut pushed = std::collections::HashSet::new();
+
+        // candidate with original left (keep merged)
+        let key_left = format!("{}|{}", left, direct_right);
+        if pushed.insert(key_left.clone()) {
+            out.push(Candidate::new(
+                vec![left.to_string(), direct_right.clone()],
+                Some(self.data),
+            ));
+        }
+
+        // candidate with trimmed base (drop merged) — only if base != left
+        if base != left {
+            let key_base = format!("{}|{}", base, direct_right);
+            if pushed.insert(key_base.clone()) {
+                out.push(Candidate::new(
+                    vec![base.clone(), direct_right.clone()],
+                    Some(self.data),
+                ));
+            }
+        }
 
         if let Some(candidates) = sandhi.split(right) {
             for candi in candidates {

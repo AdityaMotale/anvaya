@@ -49,44 +49,103 @@ pub(crate) fn ends_with_soundclass(s: &str, sc: &SoundClass) -> bool {
     false
 }
 
-pub(crate) fn trim_end_soundclass(s: &str, sc: &SoundClass) -> String {
-    let mut s_n = nfc(s);
-    let mut grs: Vec<&str> = UnicodeSegmentation::graphemes(s_n.as_str(), true).collect();
+pub(crate) fn trim_end_soundclass(s: &str, sc: &SoundClass) -> Option<String> {
+    let s_n = nfc(s);
+    let mut grs: Vec<String> = UnicodeSegmentation::graphemes(s_n.as_str(), true)
+        .map(|g| g.to_string())
+        .collect();
 
     if grs.is_empty() {
-        return s_n;
+        return None;
     }
 
+    eprintln!("trim_debug: input='{}' graphemes={:?}", s_n, grs);
+
+    // If sc has a string representation (could be multi-grapheme OR single matra)
     if let Some(sc_str) = sc.as_str() {
         let sc_n = nfc(sc_str);
+        let sc_grs: Vec<String> = UnicodeSegmentation::graphemes(sc_n.as_str(), true)
+            .map(|g| g.to_string())
+            .collect();
 
-        if grs.last().map(|g| nfc(*g)) == Some(sc_n.clone()) {
-            grs.pop();
+        eprintln!(
+            "trim_debug: trying sc.as_str()='{}' -> sc_grs={:?}",
+            sc_n, sc_grs
+        );
 
-            return grs.join("");
-        }
-
-        let sc_grs: Vec<&str> = UnicodeSegmentation::graphemes(sc_n.as_str(), true).collect();
-
-        if sc_grs.len() > 1 && sc_grs.len() <= grs.len() {
+        // 1) Exact tail (multi-grapheme) match
+        if sc_grs.len() <= grs.len() {
             let tail = &grs[grs.len() - sc_grs.len()..];
             let tail_joined = tail.join("");
-
-            if nfc(tail_joined) == sc_n {
+            if tail_joined == sc_n {
                 grs.truncate(grs.len() - sc_grs.len());
-
-                return grs.join("");
+                let base = grs.join("");
+                eprintln!("trim_debug: matched exact string-form; base='{}'", base);
+                return Some(base);
             }
         }
-    }
 
-    if let Some(last) = grs.last() {
-        if last.chars().last() == Some(sc.as_char()) {
-            grs.pop();
+        // 2) If sc_n is a single codepoint (matra) — check if it's the final codepoint of the last grapheme
+        if sc_grs.len() == 1 && sc_grs[0].chars().count() == 1 {
+            let sc_ch = sc_grs[0].chars().next().unwrap();
+            eprintln!(
+                "trim_debug: trying single-codepoint sc '{}' inside last grapheme",
+                sc_ch
+            );
 
-            return grs.join("");
+            // pop last grapheme and inspect
+            let last = grs.pop().unwrap();
+            eprintln!("trim_debug: last_grapheme='{}'", last);
+
+            if last.chars().last() == Some(sc_ch) {
+                // remove just that final char
+                let mut last_mod = last.clone();
+                last_mod.pop();
+                if !last_mod.is_empty() {
+                    grs.push(last_mod.clone());
+                }
+                let base = grs.join("");
+                eprintln!(
+                    "trim_debug: matched matra inside last grapheme; new_last='{}'; base='{}'",
+                    last_mod, base
+                );
+                return Some(base);
+            }
+
+            // no match: push it back and continue to other fallbacks
+            grs.push(last);
+            eprintln!("trim_debug: single-codepoint sc not present as final codepoint");
         }
+
+        // don't return None here — allow fallback to as_char() below
+        eprintln!("trim_debug: sc.as_str() did not match tail; trying as_char fallback");
     }
 
-    grs.join("")
+    // pop last grapheme and inspect
+    let last = grs.pop().unwrap();
+    eprintln!(
+        "trim_debug: trying sc.as_char()='{}' against last_grapheme='{}'",
+        sc.as_char(),
+        last
+    );
+
+    if last.chars().last() == Some(sc.as_char()) {
+        let mut last_mod = last.clone();
+        last_mod.pop();
+        if !last_mod.is_empty() {
+            grs.push(last_mod.clone());
+        }
+        let base = grs.join("");
+        eprintln!(
+            "trim_debug: matched char-form; new_last='{}'; base='{}'",
+            last_mod, base
+        );
+        return Some(base);
+    } else {
+        // restore and fail
+        grs.push(last);
+        eprintln!("trim_debug: as_char() did not match last grapheme");
+    }
+
+    None
 }
