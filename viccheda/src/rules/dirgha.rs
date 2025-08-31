@@ -2,6 +2,7 @@ use crate::{
     common::{AsChar, AsStr, Consonant, IndepVowel, SoundClass, Vowel},
     rules::{Rule, RuleData, RuleUtils},
     split::{Candidate, Splitter},
+    tracef,
 };
 
 pub(crate) struct SvarDirgha {
@@ -95,15 +96,16 @@ impl Rule for SvarDirgha {
 
 impl SvarDirgha {
     pub fn rules() -> Vec<Box<dyn Rule>> {
-        let mut rules = Vec::new();
+        let mut rls = Vec::new();
 
-        rules.extend(Self::aa_to_a_rules());
-        rules.extend(Self::ai_to_e_rules());
+        rls.extend(Self::aa_to_a_a_rules());
+        rls.extend(Self::ii_to_i_i_rules());
+        // rls.extend(Self::ii_to_ii_i_rules());
 
-        rules
+        rls
     }
 
-    fn aa_to_a_rules() -> Vec<Box<dyn Rule>> {
+    fn aa_to_a_a_rules() -> Vec<Box<dyn Rule>> {
         // HACK: (आ ) directly at the word as a sandi is rare, so we just ignore it,
         // split on the [Vowel] ("ा") form and not the [IndepVowel] form
 
@@ -153,48 +155,95 @@ impl SvarDirgha {
         ]
     }
 
-    fn ai_to_e_rules() -> Vec<Box<dyn Rule>> {
+    fn ii_to_i_i_rules() -> Vec<Box<dyn Rule>> {
         vec![
             // NOTE: इ should not be added at the end of left candidate, that's why
             // we did't choose [IndependentVowl] for the `left` window in this rule
             Box::new(SvarDirgha {
                 data: RuleData {
-                    name: "savarṇa-dīrgha-e1",
+                    name: "savarṇa-dīrgha-i1",
                     desc: "ई => इ + इ",
                     tag: "6.1.101",
-                    left: SoundClass::Vowel(Vowel::E),
-                    right: SoundClass::IndepVowel(IndepVowel::E),
-                    merged: SoundClass::Vowel(Vowel::AI),
+                    left: SoundClass::Vowel(Vowel::I),
+                    right: SoundClass::IndepVowel(IndepVowel::I),
+                    merged: SoundClass::Vowel(Vowel::II),
                 },
             }),
             Box::new(SvarDirgha {
                 data: RuleData {
-                    name: "savarṇa-dīrgha-e2",
+                    name: "savarṇa-dīrgha-i2",
                     desc: "ई => ई + इ",
                     tag: "6.1.101",
-                    left: SoundClass::Vowel(Vowel::AI),
-                    right: SoundClass::IndepVowel(IndepVowel::E),
-                    merged: SoundClass::Vowel(Vowel::AI),
+                    left: SoundClass::Vowel(Vowel::II),
+                    right: SoundClass::IndepVowel(IndepVowel::I),
+                    merged: SoundClass::Vowel(Vowel::II),
                 },
             }),
             Box::new(SvarDirgha {
                 data: RuleData {
-                    name: "savarṇa-dīrgha-e3",
+                    name: "savarṇa-dīrgha-i3",
                     desc: "ई => इ + ई",
                     tag: "6.1.101",
-                    left: SoundClass::Vowel(Vowel::E),
-                    right: SoundClass::IndepVowel(IndepVowel::AI),
-                    merged: SoundClass::Vowel(Vowel::AI),
+                    left: SoundClass::Vowel(Vowel::I),
+                    right: SoundClass::IndepVowel(IndepVowel::II),
+                    merged: SoundClass::Vowel(Vowel::II),
                 },
             }),
             Box::new(SvarDirgha {
                 data: RuleData {
-                    name: "savarṇa-dīrgha-e4",
+                    name: "savarṇa-dīrgha-i4",
                     desc: "ई => ई + ई",
                     tag: "6.1.101",
-                    left: SoundClass::Vowel(Vowel::AI),
-                    right: SoundClass::IndepVowel(IndepVowel::AI),
-                    merged: SoundClass::Vowel(Vowel::AI),
+                    left: SoundClass::Vowel(Vowel::II),
+                    right: SoundClass::IndepVowel(IndepVowel::II),
+                    merged: SoundClass::Vowel(Vowel::II),
+                },
+            }),
+        ]
+    }
+
+    fn ii_to_ii_i_rules() -> Vec<Box<dyn Rule>> {
+        vec![
+            // NOTE: इ should not be added at the end of left candidate, that's why
+            // we did't choose [IndependentVowl] for the `left` window in this rule
+            Box::new(SvarDirgha {
+                data: RuleData {
+                    name: "savarṇa-dīrgha-E1",
+                    desc: "ई => इ + इ",
+                    tag: "6.1.101",
+                    left: SoundClass::Vowel(Vowel::I),
+                    right: SoundClass::IndepVowel(IndepVowel::I),
+                    merged: SoundClass::Vowel(Vowel::II),
+                },
+            }),
+            Box::new(SvarDirgha {
+                data: RuleData {
+                    name: "savarṇa-dīrgha-E2",
+                    desc: "ई => ई + इ",
+                    tag: "6.1.101",
+                    left: SoundClass::Vowel(Vowel::II),
+                    right: SoundClass::IndepVowel(IndepVowel::I),
+                    merged: SoundClass::Vowel(Vowel::II),
+                },
+            }),
+            Box::new(SvarDirgha {
+                data: RuleData {
+                    name: "savarṇa-dīrgha-E3",
+                    desc: "ई => इ + ई",
+                    tag: "6.1.101",
+                    left: SoundClass::Vowel(Vowel::I),
+                    right: SoundClass::IndepVowel(IndepVowel::II),
+                    merged: SoundClass::Vowel(Vowel::II),
+                },
+            }),
+            Box::new(SvarDirgha {
+                data: RuleData {
+                    name: "savarṇa-dīrgha-E4",
+                    desc: "ई => ई + ई",
+                    tag: "6.1.101",
+                    left: SoundClass::Vowel(Vowel::II),
+                    right: SoundClass::IndepVowel(IndepVowel::II),
+                    merged: SoundClass::Vowel(Vowel::II),
                 },
             }),
         ]

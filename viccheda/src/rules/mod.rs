@@ -47,6 +47,13 @@ impl RuleUtils {
 
         let last = grs.last().unwrap();
 
+        // tracef!(
+        //     logger,
+        //     "[Soundclass match] matching {s} w/ {:?} and {:?}",
+        //     sc.as_char(),
+        //     sc.as_str()
+        // );
+
         if let Some(sc_str) = sc.as_str() {
             if Self::nfc(last) == Self::nfc(sc_str) {
                 tracef!(logger, "{s} matched (as_str) w/ {:?}", sc);
@@ -58,6 +65,13 @@ impl RuleUtils {
             tracef!(logger, "{s} matched (as_char) w/ {:?}", sc);
             return true;
         }
+
+        tracef!(
+            logger,
+            "[Soundclass Match] {:?} did not matched w/ {:?}",
+            last.chars().last(),
+            sc.as_char()
+        );
 
         false
     }
