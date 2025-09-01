@@ -376,6 +376,7 @@ dependencies = [
  "env_logger",
  "logger",
  "once_cell",
+ "orthography",
  "turbocache",
  "unicode-normalization",
  "unicode-segmentation",

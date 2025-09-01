@@ -1,8 +1,8 @@
 use crate::{
-    common::{AsChar, AsStr, Consonant, IndepVowel, SoundClass, Vowel},
     rules::{Rule, RuleData, RuleUtils},
     split::{Candidate, Splitter},
 };
+use orthography::{AsChar, AsStr, Consonant, IndependentVowel, SoundClass, Vowel};
 
 pub(crate) struct SvarDirgha {
     pub data: RuleData,
@@ -126,7 +126,7 @@ impl SvarDirgha {
                     desc: "आ  => अ + अ ",
                     tag: "6.1.101",
                     left: vec![SoundClass::Vowel(Vowel::A)],
-                    right: vec![SoundClass::IndepVowel(IndepVowel::A)],
+                    right: vec![SoundClass::IndependentVowel(IndependentVowel::A)],
                     merged: vec![SoundClass::Vowel(Vowel::AA)],
                 },
             }),

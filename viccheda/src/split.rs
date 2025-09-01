@@ -1,9 +1,6 @@
-use crate::{
-    common::{AsChar, AsStr, IndepVowel, SoundClass, Vowel},
-    rules::{dirgha::SvarDirgha, Rule, RuleData},
-};
+use crate::rules::{dirgha::SvarDirgha, Rule, RuleData};
 use logger::{tracef, Logger, PrettyVec};
-use std::{collections::HashSet, fs::write};
+use std::collections::HashSet;
 use unicode_normalization::UnicodeNormalization;
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -134,6 +131,7 @@ mod tests {
     use super::*;
     use env_logger;
     use once_cell::sync::OnceCell;
+    use orthography::AsStr;
 
     static INIT: OnceCell<()> = OnceCell::new();
 

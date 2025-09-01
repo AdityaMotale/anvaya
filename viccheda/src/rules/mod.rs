@@ -1,8 +1,6 @@
-use crate::{
-    common::{AsChar, AsStr, SoundClass},
-    split::{Candidate, Splitter},
-};
+use crate::split::{Candidate, Splitter};
 use logger::{tracef, Logger};
+use orthography::{AsChar, AsStr, SoundClass};
 use unicode_normalization::UnicodeNormalization;
 use unicode_segmentation::UnicodeSegmentation;
 

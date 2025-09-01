@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 logger = {path = "../logger"}
+orthography = {path = "../orthography"}
 turbocache = "0.0.5"
 unicode-normalization = "0.1.24"
 unicode-segmentation = "1.12.0"
