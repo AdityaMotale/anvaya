@@ -1,5 +1,5 @@
 use crate::split::{Candidate, Splitter};
-use logger::{debugf, tracef, Logger};
+use logger::{debugf, errorf, tracef, Logger};
 use orthography::{Akshara, AsChar, AsStr};
 use unicode_normalization::UnicodeNormalization;
 use unicode_segmentation::UnicodeSegmentation;
@@ -30,46 +30,55 @@ pub(crate) trait Rule: Send + Sync {
 pub(crate) struct RuleUtils;
 
 impl RuleUtils {
-    pub fn if_sound_ends_with_akshara(sound: &str, akshara: &Akshara, logger: &Logger) -> bool {
+    // trim input sound from right with the [Akshara], returns `None`
+    // if [Akshara] does not matches w/ input sound
+    pub fn trim_sound_with_akshara(
+        sound: &str,
+        akshara: &Akshara,
+        logger: &Logger,
+    ) -> Option<String> {
+        // sanity check
         assert!(akshara.0.len() != 0);
 
         // fast fail for invalid input
         if sound.is_empty() {
-            return false;
+            return None;
         }
 
         tracef!(
             logger,
-            "[Soundclass match] matching sound=`{}` with akshara {}",
+            "[Sound Trim] matching sound=`{}` with akshara {}",
             sound,
             akshara
         );
 
-        // Work on a mutable tail (bytes) and consume suffixes/last-chars from right→left.
-        // We keep it as a String so we can truncate by byte index safely.
+        // in the loop we consume suffixes/last-chars (bytes) from right -> left,
+        // this way we get our trimmed sound
         let mut tail = sound.to_string();
 
-        for sc in akshara.0.iter().rev() {
+        // we iter w/ reverse sequence cause we are matching from right -> left,
+        // or end -> start
+        for soundclass in akshara.0.iter().rev() {
             if tail.is_empty() {
                 tracef!(
                     logger,
-                    "[Soundclass Match (FAIL)] tail empty but still have {:?} to match",
-                    sc.as_str()
+                    "[Sound Trim] (ERROR) tail empty but still have {} to match",
+                    soundclass.as_char()
                 );
 
-                return false;
+                return None;
             }
 
-            if let Some(expected) = sc.as_str() {
-                if tail.ends_with(expected) {
-                    let new_len = tail.len() - expected.len();
+            if let Some(expected_str) = soundclass.as_str() {
+                if tail.ends_with(expected_str) {
+                    let new_len = tail.len() - expected_str.len();
                     tail.truncate(new_len);
 
                     tracef!(
                         logger,
-                        "[Soundclass match] matched as_str `{}` for {:?}; new tail=`{}`",
-                        expected,
-                        sc.as_str(),
+                        "[Sound Trim] matched `{}` for {} ;; new tail=`{}`",
+                        expected_str,
+                        soundclass.as_char(),
                         tail
                     );
 
@@ -77,152 +86,80 @@ impl RuleUtils {
                 } else {
                     tracef!(
                         logger,
-                        "[Soundclass match FAIL] tail `{}` does not end with `{}` for {:?}",
+                        "[Sound Trim] (SKIP) tail `{}` does not end with `{}` for {}",
                         tail,
-                        expected,
-                        sc.as_str(),
+                        expected_str,
+                        soundclass.as_char(),
                     );
 
-                    return false;
+                    return None;
                 }
             } else {
-                // no as_str -> match single char (as_char)
-                let last_char = tail.chars().rev().next();
+                // NOTE: Except [Vowel::A], all sound class have string representation (as_str)
+                // And [Vowel::A] must never be used in merged sequence, cause we never split on
+                // single [Vowel::A] or [IndependentVowel::A]. So, we're mostly safe here ;)
 
-                if last_char == Some(sc.as_char()) {
-                    // remove last char safely by truncating at its starting byte index
-                    let cut_at = tail
-                        .char_indices()
-                        .rev()
-                        .next()
-                        .map(|(idx, _)| idx)
-                        .unwrap_or(0);
-
-                    tail.truncate(cut_at);
-
-                    tracef!(
-                        logger,
-                        "[Soundclass match] matched as_char U+{:04X} for {:?}; new tail=`{}`",
-                        sc.as_char() as u32,
-                        sc.as_str(),
-                        tail
-                    );
-
-                    continue;
-                } else {
-                    tracef!(
+                errorf!(
                     logger,
-                    "[Soundclass match FAIL] tail last char ({:?}) != as_char U+{:04X} for {:?}",
-                    last_char,
-                    sc.as_char() as u32,
-                    sc.as_str(),
+                    "[Sound Trim] {akshara} contains empty string sequence {}",
+                    soundclass.as_char(),
                 );
 
-                    return false;
-                }
+                return None;
             }
         }
 
-        tracef!(
-            logger,
-            "[Soundclass Match (OK)] all soundclasses matched for `{}`",
-            sound
-        );
+        Some(tail)
+    }
+}
 
-        true
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use env_logger;
+    use once_cell::sync::OnceCell;
+    use orthography::{Adjuncts, Vowel};
+    use orthography::{AsStr, SoundClass};
+
+    static INIT: OnceCell<Logger> = OnceCell::new();
+
+    fn init_logger() {
+        INIT.get_or_init(|| {
+            let _ = env_logger::builder().is_test(true).try_init();
+            Logger::new(true, "RuleUtils (Test)")
+        });
     }
 
-    pub fn trim_end_soundclass(sound: &str, akshara: &Akshara, logger: &Logger) -> Option<String> {
-        let mut graphemes: Vec<String> = UnicodeSegmentation::graphemes(sound, true)
-            .map(|g| g.to_string())
-            .collect();
+    #[test]
+    fn test_trim_sound_with_sequence() {
+        init_logger();
+        let logger = INIT.get().expect("Custom Logger for test");
 
-        if graphemes.is_empty() {
-            return None;
+        let candidates: Vec<(String, &'static str, Akshara, &'static str)> = vec![
+            (
+                String::from("पित"),
+                "पितृृ",
+                Akshara(vec![
+                    SoundClass::Vowel(Vowel::R),
+                    SoundClass::Vowel(Vowel::R),
+                ]),
+                "[Vowel::R, Vowel::R] matching with Vowel::RR",
+            ),
+            (
+                String::from("सर्व"),
+                "सर्वां",
+                Akshara(vec![
+                    SoundClass::Vowel(Vowel::AA),
+                    SoundClass::Adjuncts(Adjuncts::ANUSVARA),
+                ]),
+                "[Vowel::AA, Adjuncts::ANUSVARA] matching with [Vowel::AA, Adjuncts::ANUSVARA]",
+            ),
+        ];
+
+        for (out, inp, aksh, desc) in candidates {
+            let sound = RuleUtils::trim_sound_with_akshara(inp, &aksh, logger);
+
+            assert_eq!(Some(out), sound, "Failed for {}", desc);
         }
-
-        // if let Some(sc_str) = sc.as_str() {
-        //     let sc_grs: Vec<String> = UnicodeSegmentation::graphemes(sc_str, true)
-        //         .map(|g| g.to_string())
-        //         .collect();
-
-        //     // ▶ Exact tail (multi-grapheme) match
-        //     if sc_grs.len() <= graphemes.len() {
-        //         let tail = &graphemes[graphemes.len() - sc_grs.len()..];
-        //         let tail_joined = tail.join("");
-
-        //         if tail_joined == sc_str {
-        //             graphemes.truncate(graphemes.len() - sc_grs.len());
-        //             tracef!(
-        //                 logger,
-        //                 "[trim_debug]: Removed following => {}:{}",
-        //                 tail_joined,
-        //                 sc_str
-        //             );
-
-        //             return Some(graphemes.join(""));
-        //         }
-        //     }
-
-        //     // ▶ If sc_n is a single codepoint (matra), we check if it's the final
-        //     // codepoint of the last grapheme
-        //     if sc_grs.len() == 1 && sc_grs[0].chars().count() == 1 {
-        //         let sc_ch = sc_grs[0].chars().next().unwrap();
-
-        //         // pop last grapheme and inspect
-        //         let last = graphemes.pop().unwrap();
-        //         tracef!(logger, "[trim_debug:] last_grapheme='{}'", last);
-
-        //         if last.chars().last() == Some(sc_ch) {
-        //             // remove just that final char
-        //             let mut last_mod = last.clone();
-        //             last_mod.pop();
-
-        //             if !last_mod.is_empty() {
-        //                 graphemes.push(last_mod.clone());
-        //             }
-
-        //             let base = graphemes.join("");
-        //             tracef!(
-        //                 logger, "[trim_debug]: matched matra inside last grapheme; new_last='{}'; base='{}'",
-        //                 last_mod, base
-        //             );
-
-        //             return Some(base);
-        //         }
-
-        //         // no match, so continue w/ other fallbacks
-        //         graphemes.push(last);
-        //     }
-
-        //     // don't return, let the flow falldown
-        // }
-
-        // // pop last grapheme and inspect
-        // let last = graphemes.pop().unwrap();
-
-        // if last.chars().last() == Some(sc.as_char()) {
-        //     let mut last_mod = last.clone();
-        //     last_mod.pop();
-
-        //     if !last_mod.is_empty() {
-        //         graphemes.push(last_mod.clone());
-        //     }
-
-        //     let base = graphemes.join("");
-        //     tracef!(
-        //         logger,
-        //         "[trim_debug]: matched char-form; new_last='{}'; base='{}'",
-        //         last_mod,
-        //         base
-        //     );
-
-        //     return Some(base);
-        // } else {
-        //     // restore and fail
-        //     graphemes.push(last);
-        // }
-
-        None
     }
 }

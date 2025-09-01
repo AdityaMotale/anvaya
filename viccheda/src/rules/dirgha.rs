@@ -16,9 +16,9 @@ impl Rule for SvarDirgha {
     fn apply(&self, splitter: &Splitter, left: &str, right: &str) -> Option<Vec<Candidate>> {
         let mut out = Vec::new();
 
-        if !RuleUtils::if_sound_ends_with_akshara(left, &self.data.merged, &splitter.logger) {
-            return None;
-        }
+        // if !RuleUtils::if_sound_ends_with_akshara(left, &self.data.merged, &splitter.logger) {
+        //     return None;
+        // }
 
         // let merged_str = self.data.merged.as_str();
         // let merged_char = self.data.merged.as_char();

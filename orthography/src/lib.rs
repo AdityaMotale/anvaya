@@ -507,6 +507,7 @@ pub enum SoundClass {
     Vowel(Vowel),
     IndependentVowel(IndependentVowel),
     Consonent(Consonant),
+    Adjuncts(Adjuncts),
 }
 
 impl AsStr for SoundClass {
@@ -516,6 +517,7 @@ impl AsStr for SoundClass {
             SoundClass::Vowel(v) => v.as_str(),
             SoundClass::IndependentVowel(v) => v.as_str(),
             SoundClass::Consonent(c) => c.as_str(),
+            SoundClass::Adjuncts(a) => a.as_str(),
         }
     }
 }
@@ -527,6 +529,7 @@ impl AsChar for SoundClass {
             SoundClass::Vowel(v) => v.as_char(),
             SoundClass::IndependentVowel(v) => v.as_char(),
             SoundClass::Consonent(c) => c.as_char(),
+            SoundClass::Adjuncts(a) => a.as_char(),
         }
     }
 }
