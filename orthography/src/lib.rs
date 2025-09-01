@@ -533,3 +533,16 @@ impl AsChar for SoundClass {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Akshara(pub Vec<SoundClass>);
+
+impl std::fmt::Display for Akshara {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let chrs: String = self.0.iter().map(|s| s.as_char()).collect();
+        let strs: String = self
+            .0
+            .iter()
+            .map(|s| s.as_str().unwrap_or("<UNK>"))
+            .collect();
+
+        write!(f, " {strs} ( {chrs} )")
+    }
+}

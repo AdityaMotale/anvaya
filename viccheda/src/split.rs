@@ -171,9 +171,27 @@ mod tests {
                         if let Some(rule) = &cand.rule {
                             let rule_name = rule.name;
                             let rule_tag = rule.tag;
-                            let left_sc = rule.left[0].as_str().unwrap_or("<none>");
-                            let right_sc = rule.right[0].as_str().unwrap_or("<none>");
-                            let merged_sc = rule.merged[0].as_str().unwrap_or("<none>");
+
+                            let left_sc: String = rule
+                                .left
+                                .0
+                                .iter()
+                                .map(|sc| sc.as_str().unwrap_or("<UNK>"))
+                                .collect();
+
+                            let right_sc: String = rule
+                                .right
+                                .0
+                                .iter()
+                                .map(|sc| sc.as_str().unwrap_or("<UNK>"))
+                                .collect();
+
+                            let merged_sc: String = rule
+                                .right
+                                .0
+                                .iter()
+                                .map(|sc| sc.as_str().unwrap_or("<UNK>"))
+                                .collect();
 
                             debug.push_str(&format!(
                                 "candidate {}: {}\n  rule: {} (tag {})\n  left/right/merged: {} / {} / {}\n\n",
