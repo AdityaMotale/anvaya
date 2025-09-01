@@ -295,25 +295,6 @@ impl AsStr for Consonant {
 pub(crate) struct Orthography;
 
 impl Orthography {
-    pub const MATRA_TO_INDEP_VOWEL_MAP: LazyLock<HashMap<&'static str, &'static str>> =
-        LazyLock::new(|| {
-            let mut m = HashMap::new();
-
-            m.insert("ा", "आ");
-            m.insert("ि", "इ");
-            m.insert("ी", "ई");
-            m.insert("ु", "उ");
-            m.insert("ू", "ऊ");
-            m.insert("ृ", "ऋ");
-            m.insert("ॄ", "ॠ");
-            m.insert("े", "ए");
-            m.insert("ै", "ऐ");
-            m.insert("ो", "ओ");
-            m.insert("ौ", "औ");
-
-            m
-        });
-
     pub const GUTTURALS: [Consonant; 5] = [
         Consonant::Ka,
         Consonant::Kha,

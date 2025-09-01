@@ -6,6 +6,7 @@ use crate::{
     tracef, warnf,
 };
 use std::{collections::HashSet, fs::write};
+use unicode_normalization::UnicodeNormalization;
 use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Debug, Clone)]
@@ -60,16 +61,23 @@ impl Splitter {
         }
     }
 
-    pub fn candidates(&self, morpheme: &str) -> Option<Vec<Candidate>> {
+    fn nfc<S: AsRef<str>>(s: S) -> String {
+        s.as_ref().nfc().collect()
+    }
+
+    pub fn candidates(&self, input: &str) -> Option<Vec<Candidate>> {
+        let morpheme = Self::nfc(input);
         let mut results: Vec<Candidate> = Vec::new();
         let mut seen: HashSet<String> = HashSet::new();
 
-        let graphemes: Vec<&str> = UnicodeSegmentation::graphemes(morpheme, true).collect();
+        let graphemes: Vec<&str> =
+            UnicodeSegmentation::graphemes(morpheme.as_str(), true).collect();
 
         tracef!(
             self.logger,
-            "{morpheme} => {:?}",
-            PrettyVec(graphemes.clone())
+            "{morpheme} => \n{:?}\n{:?}",
+            PrettyVec(graphemes.clone()),
+            morpheme.chars(),
         );
 
         // sanity check
@@ -159,12 +167,12 @@ mod tests {
                     for (i, cand) in candidates.iter().enumerate() {
                         let joined = cand.splits.join(" | ");
 
-                        if let Some(rule) = cand.rule {
+                        if let Some(rule) = &cand.rule {
                             let rule_name = rule.name;
                             let rule_tag = rule.tag;
-                            let left_sc = rule.left.as_str().unwrap_or("<none>");
-                            let right_sc = rule.right.as_str().unwrap_or("<none>");
-                            let merged_sc = rule.merged.as_str().unwrap_or("<none>");
+                            let left_sc = rule.left[0].as_str().unwrap_or("<none>");
+                            let right_sc = rule.right[0].as_str().unwrap_or("<none>");
+                            let merged_sc = rule.merged[0].as_str().unwrap_or("<none>");
 
                             debug.push_str(&format!(
                                 "candidate {}: {}\n  rule: {} (tag {})\n  left/right/merged: {} / {} / {}\n\n",
@@ -263,20 +271,20 @@ mod tests {
                 run_sandhi_cases(cases, false);
             }
 
-            // #[test]
-            // fn aa_to_a_a_anusvara() {
-            //     let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
-            //         ("सर्वांगीणः", vec![vec!["सर्व", "अंगीणः"]]),
-            //         ("मूल्यांकनः", vec![vec!["मूल्य", "अंकनः"]]),
-            //         ("देहांतः", vec![vec!["देह", "अंतः"]]),
-            //         ("सुखांतः", vec![vec!["सुख", "अन्तः"]]),
-            //         ("दीक्षांतः", vec![vec!["दीक्षा", "अंतः"]]),
-            //         ("रेखांकितः", vec![vec!["रेखा", "अंकितः"]]),
-            //         ("गीतांजलिः", vec![vec!["गीत", "अंजलिः"]]),
-            //     ];
+            #[test]
+            fn aa_to_a_a_anusvara() {
+                let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
+                    ("सर्वांगीणः", vec![vec!["सर्व", "अंगीणः"]]),
+                    ("मूल्यांकनः", vec![vec!["मूल्य", "अंकनः"]]),
+                    ("देहांतः", vec![vec!["देह", "अंतः"]]),
+                    ("सुखांतः", vec![vec!["सुख", "अन्तः"]]),
+                    ("दीक्षांतः", vec![vec!["दीक्षा", "अंतः"]]),
+                    ("रेखांकितः", vec![vec!["रेखा", "अंकितः"]]),
+                    ("गीतांजलिः", vec![vec!["गीत", "अंजलिः"]]),
+                ];
 
-            //     run_sandhi_cases(cases, true);
-            // }
+                run_sandhi_cases(cases, true);
+            }
 
             #[test]
             fn ii_to_i_i_debug() {

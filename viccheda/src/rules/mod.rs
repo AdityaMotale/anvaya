@@ -9,14 +9,14 @@ use unicode_segmentation::UnicodeSegmentation;
 
 pub(crate) mod dirgha;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub(crate) struct RuleData {
     pub name: &'static str,
     pub desc: &'static str,
     pub tag: &'static str,
-    pub left: SoundClass,
-    pub right: SoundClass,
-    pub merged: SoundClass,
+    pub left: Vec<SoundClass>,
+    pub right: Vec<SoundClass>,
+    pub merged: Vec<SoundClass>,
 }
 
 impl std::fmt::Display for RuleData {
@@ -33,13 +33,8 @@ pub(crate) trait Rule: Send + Sync {
 pub(crate) struct RuleUtils;
 
 impl RuleUtils {
-    pub fn nfc<S: AsRef<str>>(s: S) -> String {
-        s.as_ref().nfc().collect()
-    }
-
-    pub fn ends_with_soundclass(s: &str, sc: &SoundClass, logger: &Logger) -> bool {
-        let s_n = Self::nfc(s);
-        let grs: Vec<&str> = UnicodeSegmentation::graphemes(s_n.as_str(), true).collect();
+    pub fn ends_with_soundclass(sound: &str, sc: &SoundClass, logger: &Logger) -> bool {
+        let grs: Vec<&str> = UnicodeSegmentation::graphemes(sound, true).collect();
 
         if grs.is_empty() {
             return false;
@@ -55,14 +50,14 @@ impl RuleUtils {
         // );
 
         if let Some(sc_str) = sc.as_str() {
-            if Self::nfc(last) == Self::nfc(sc_str) {
-                tracef!(logger, "{s} matched (as_str) w/ {:?}", sc);
+            if last == &sc_str {
+                tracef!(logger, "{sound} matched (as_str) w/ {:?}", sc);
                 return true;
             }
         }
 
         if last.chars().last() == Some(sc.as_char()) {
-            tracef!(logger, "{s} matched (as_char) w/ {:?}", sc);
+            tracef!(logger, "{sound} matched (as_char) w/ {:?}", sc);
             return true;
         }
 
@@ -76,10 +71,8 @@ impl RuleUtils {
         false
     }
 
-    pub fn trim_end_soundclass(s: &str, sc: &SoundClass, logger: &Logger) -> Option<String> {
-        let s_n = Self::nfc(s);
-
-        let mut graphemes: Vec<String> = UnicodeSegmentation::graphemes(s_n.as_str(), true)
+    pub fn trim_end_soundclass(sound: &str, sc: &SoundClass, logger: &Logger) -> Option<String> {
+        let mut graphemes: Vec<String> = UnicodeSegmentation::graphemes(sound, true)
             .map(|g| g.to_string())
             .collect();
 
@@ -88,8 +81,7 @@ impl RuleUtils {
         }
 
         if let Some(sc_str) = sc.as_str() {
-            let sc_n = Self::nfc(sc_str);
-            let sc_grs: Vec<String> = UnicodeSegmentation::graphemes(sc_n.as_str(), true)
+            let sc_grs: Vec<String> = UnicodeSegmentation::graphemes(sc_str, true)
                 .map(|g| g.to_string())
                 .collect();
 
@@ -98,13 +90,13 @@ impl RuleUtils {
                 let tail = &graphemes[graphemes.len() - sc_grs.len()..];
                 let tail_joined = tail.join("");
 
-                if tail_joined == sc_n {
+                if tail_joined == sc_str {
                     graphemes.truncate(graphemes.len() - sc_grs.len());
                     tracef!(
                         logger,
                         "[trim_debug]: Removed following => {}:{}",
                         tail_joined,
-                        sc_n
+                        sc_str
                     );
 
                     return Some(graphemes.join(""));
@@ -142,7 +134,7 @@ impl RuleUtils {
                 graphemes.push(last);
             }
 
-            // don't return, let flow falldown
+            // don't return, let the flow falldown
         }
 
         // pop last grapheme and inspect
