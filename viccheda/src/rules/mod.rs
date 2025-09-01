@@ -1,9 +1,8 @@
 use crate::{
     common::{AsChar, AsStr, SoundClass},
-    logger::Logger,
     split::{Candidate, Splitter},
-    tracef,
 };
+use logger::{tracef, Logger};
 use unicode_normalization::UnicodeNormalization;
 use unicode_segmentation::UnicodeSegmentation;
 

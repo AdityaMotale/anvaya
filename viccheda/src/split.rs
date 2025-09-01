@@ -1,10 +1,8 @@
 use crate::{
     common::{AsChar, AsStr, IndepVowel, SoundClass, Vowel},
-    debugf,
-    logger::{Logger, PrettyVec},
     rules::{dirgha::SvarDirgha, Rule, RuleData},
-    tracef, warnf,
 };
+use logger::{tracef, Logger, PrettyVec};
 use std::{collections::HashSet, fs::write};
 use unicode_normalization::UnicodeNormalization;
 use unicode_segmentation::UnicodeSegmentation;
@@ -77,7 +75,12 @@ impl Splitter {
             self.logger,
             "{morpheme} => \n{:?}\n{:?}",
             PrettyVec(graphemes.clone()),
-            morpheme.chars(),
+            PrettyVec(
+                morpheme
+                    .chars()
+                    .map(|c| c.to_string())
+                    .collect::<Vec<String>>()
+            ),
         );
 
         // sanity check

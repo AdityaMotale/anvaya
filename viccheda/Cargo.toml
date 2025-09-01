@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-log = "0.4.27"
+logger = {path = "../logger"}
 turbocache = "0.0.5"
 unicode-normalization = "0.1.24"
 unicode-segmentation = "1.12.0"

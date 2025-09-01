@@ -2,7 +2,6 @@ use crate::{
     common::{AsChar, AsStr, Consonant, IndepVowel, SoundClass, Vowel},
     rules::{Rule, RuleData, RuleUtils},
     split::{Candidate, Splitter},
-    tracef,
 };
 
 pub(crate) struct SvarDirgha {
