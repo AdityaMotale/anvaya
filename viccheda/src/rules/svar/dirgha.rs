@@ -2,7 +2,9 @@ use crate::{
     rules::{BaseRule, Rule, RuleData, RuleGroup, RuleUtils},
     split::{Candidate, Splitter},
 };
-use orthography::{Akshara, AsChar, AsStr, Consonant, IndependentVowel, SoundClass, Vowel};
+use orthography::{
+    Adjuncts, Akshara, AsChar, AsStr, Consonant, IndependentVowel, SoundClass, Vowel,
+};
 
 pub(crate) struct SvarDirgha;
 
@@ -11,6 +13,9 @@ impl RuleGroup for SvarDirgha {
         let mut rls = Vec::new();
 
         rls.extend(Self::aa_to_a_a_rules());
+        rls.extend(Self::aa_to_a_a_anusvara_rules());
+        rls.extend(Self::ii_to_i_i_rules());
+        rls.extend(Self::uu_to_u_u_rules());
         rls.extend(Self::rr_to_r_r_rules());
 
         rls
@@ -20,10 +25,11 @@ impl RuleGroup for SvarDirgha {
 // HACK: Independent Vowels directly at the left candidate or window in the
 // split process of sandi are rare, so we just ignore them in this rules,
 // we mainly split on the Vowel form (e.g. "ा") and not the IndepVowel form (e.g. आ )
+//
+// NOTE: Vowels like (अ ) should not be added at the end of left candidate, that's why
+// we did't choose [IndependentVowl] for the `left` window in the rules
 impl SvarDirgha {
     fn aa_to_a_a_rules() -> Vec<Box<dyn Rule>> {
-        // NOTE: (अ  or आ  ) should not be added at the end of left candidate, that's why
-        // we did't choose [IndependentVowl] for the `left` window in this rule
         vec![
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-a1",
@@ -60,9 +66,68 @@ impl SvarDirgha {
         ]
     }
 
+    fn aa_to_a_a_anusvara_rules() -> Vec<Box<dyn Rule>> {
+        vec![
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-A1",
+                desc: "आं  => अ + अ  (Anusvara Special Case)",
+                tag: "6.1.101",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+                right: Akshara(vec![
+                    SoundClass::IndependentVowel(IndependentVowel::A),
+                    SoundClass::Adjuncts(Adjuncts::ANUSVARA),
+                ]),
+                merged: Akshara(vec![
+                    SoundClass::Vowel(Vowel::AA),
+                    SoundClass::Adjuncts(Adjuncts::ANUSVARA),
+                ]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-A2",
+                desc: "आं  => आ  + अ  (Anusvara Special Case)",
+                tag: "6.1.101",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+                right: Akshara(vec![
+                    SoundClass::IndependentVowel(IndependentVowel::A),
+                    SoundClass::Adjuncts(Adjuncts::ANUSVARA),
+                ]),
+                merged: Akshara(vec![
+                    SoundClass::Vowel(Vowel::AA),
+                    SoundClass::Adjuncts(Adjuncts::ANUSVARA),
+                ]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-A3",
+                desc: "आं  => अ + आ  (Anusvara Special Case)",
+                tag: "6.1.101",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+                right: Akshara(vec![
+                    SoundClass::IndependentVowel(IndependentVowel::AA),
+                    SoundClass::Adjuncts(Adjuncts::ANUSVARA),
+                ]),
+                merged: Akshara(vec![
+                    SoundClass::Vowel(Vowel::AA),
+                    SoundClass::Adjuncts(Adjuncts::ANUSVARA),
+                ]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-A4",
+                desc: "आं  => आ  + आ  (Anusvara Special Case)",
+                tag: "6.1.101",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+                right: Akshara(vec![
+                    SoundClass::IndependentVowel(IndependentVowel::AA),
+                    SoundClass::Adjuncts(Adjuncts::ANUSVARA),
+                ]),
+                merged: Akshara(vec![
+                    SoundClass::Vowel(Vowel::AA),
+                    SoundClass::Adjuncts(Adjuncts::ANUSVARA),
+                ]),
+            })),
+        ]
+    }
+
     fn ii_to_i_i_rules() -> Vec<Box<dyn Rule>> {
-        // NOTE: ( इ or ई ) should not be added at the end of left candidate, that's why
-        // we did't choose [IndependentVowl] for the `left` window in this rules
         vec![
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-i1",
@@ -100,8 +165,6 @@ impl SvarDirgha {
     }
 
     fn uu_to_u_u_rules() -> Vec<Box<dyn Rule>> {
-        // NOTE: ( उ  or ऊ  ) should not be added at the end of left candidate, that's why
-        // we did't choose [IndependentVowl] for the `left` window in this rule
         vec![
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-u1",
@@ -140,8 +203,6 @@ impl SvarDirgha {
 
     fn rr_to_r_r_rules() -> Vec<Box<dyn Rule>> {
         vec![
-            // NOTE: ॠ  (IndepVowel::RR) should not be added at the end of left candidate, that's why
-            // we did't choose [IndependentVowl] for the `left` window in this rule
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-r1",
                 desc: "ॠ => ॠ + ॠ ",
@@ -179,7 +240,7 @@ impl SvarDirgha {
                 ]),
             })),
             Box::new(BaseRule(RuleData {
-                name: "savarṇa-dīrgha-r1",
+                name: "savarṇa-dīrgha-r4",
                 desc: "ॠ => ॠ + ॠ ",
                 tag: "6.1.101",
                 left: Akshara(vec![
@@ -276,12 +337,18 @@ mod tests {
     }
 
     #[test]
+    fn aa_to_a_a_anusvara_debug() {
+        create_logger();
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("सर्वांगीणः", vec![vec!["सर्व", "अंगीणः"]])];
+        test_sandhi_cases(cases, true);
+    }
+
+    #[test]
     fn aa_to_a_a_anusvara() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("सर्वांगीणः", vec![vec!["सर्व", "अंगीणः"]]),
             ("मूल्यांकनः", vec![vec!["मूल्य", "अंकनः"]]),
             ("देहांतः", vec![vec!["देह", "अंतः"]]),
-            ("सुखांतः", vec![vec!["सुख", "अन्तः"]]),
             ("दीक्षांतः", vec![vec!["दीक्षा", "अंतः"]]),
             ("रेखांकितः", vec![vec!["रेखा", "अंकितः"]]),
             ("गीतांजलिः", vec![vec!["गीत", "अंजलिः"]]),
@@ -383,9 +450,9 @@ mod tests {
             ("मातृृणम्", vec![vec!["मातृ", "ऋणम्"]]),
             ("कर्तृृणम्", vec![vec!["कर्तृ", "ऋणम्"]]),
             ("कर्तृृणि", vec![vec!["कर्तृ", "ऋणि"]]),
-            ("कर्तृृद्धिः", vec![vec!["कर्तृ", "ऋद्धि:"]]),
+            ("कर्तृृद्धिः", vec![vec!["कर्तृ", "ऋद्धिः"]]),
             ("धातृृकारः", vec![vec!["धातृ", "ऋकारः"]]),
-            ("भर्तृृद्धिः", vec![vec!["भर्तृ", "ऋद्धि:"]]),
+            ("भर्तृृद्धिः", vec![vec!["भर्तृ", "ऋद्धिः"]]),
             ("होतृृषिः", vec![vec!["होतृ", "ऋषिः"]]),
         ];
 

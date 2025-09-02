@@ -95,7 +95,7 @@ impl Rule for BaseRule {
 
         // now we recursively generate candidates for the right side
         if let Some(candidates) = splitter.candidates(right) {
-            candidates.iter().map(|candi| {
+            for candi in candidates {
                 if candi.splits.len() > 1 {
                     let first_combined = match &rule_data.left.as_str() {
                         Some(s) => format!("{s}{}", candi.splits[0]),
@@ -113,7 +113,7 @@ impl Rule for BaseRule {
 
                     out.push(cand);
                 }
-            });
+            }
         }
 
         Some(out)
@@ -140,7 +140,7 @@ impl RuleUtils {
 
         tracef!(
             logger,
-            "[Sound Trim] matching sound=`{}` with akshara {}",
+            "----\n[Sound Trim] matching sound=`{}` with akshara {}",
             sound,
             akshara
         );
