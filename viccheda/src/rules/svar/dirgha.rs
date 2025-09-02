@@ -17,14 +17,14 @@ impl RuleGroup for SvarDirgha {
     }
 }
 
+// HACK: Independent Vowels directly at the left candidate or window in the
+// split process of sandi are rare, so we just ignore them in this rules,
+// we mainly split on the Vowel form (e.g. "ा") and not the IndepVowel form (e.g. आ )
 impl SvarDirgha {
     fn aa_to_a_a_rules() -> Vec<Box<dyn Rule>> {
-        // HACK: (आ ) directly at the word as a sandi is rare, so we just ignore it,
-        // split on the [Vowel] ("ा") form and not the [IndepVowel] form
-
+        // NOTE: (अ  or आ  ) should not be added at the end of left candidate, that's why
+        // we did't choose [IndependentVowl] for the `left` window in this rule
         vec![
-            // NOTE: अ  should not be added at the end of left candidate, that's why
-            // we did't choose [IndependentVowl] for the `left` window in this rule
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-a1",
                 desc: "आ  => अ + अ ",
@@ -32,6 +32,108 @@ impl SvarDirgha {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::A)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-a2",
+                desc: "आ  => आ  + अ ",
+                tag: "6.1.101",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::A)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-a3",
+                desc: "आ  => अ + आ ",
+                tag: "6.1.101",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AA)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-a4",
+                desc: "आ  => आ  + आ ",
+                tag: "6.1.101",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AA)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+            })),
+        ]
+    }
+
+    fn ii_to_i_i_rules() -> Vec<Box<dyn Rule>> {
+        // NOTE: ( इ or ई ) should not be added at the end of left candidate, that's why
+        // we did't choose [IndependentVowl] for the `left` window in this rules
+        vec![
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-i1",
+                desc: "ई => इ + इ",
+                tag: "6.1.101",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::I)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::I)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::II)]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-i2",
+                desc: "ई => ई + इ",
+                tag: "6.1.101",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::II)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::I)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::II)]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-i3",
+                desc: "ई => इ + ई",
+                tag: "6.1.101",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::I)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::II)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::II)]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-i4",
+                desc: "ई => ई + ई",
+                tag: "6.1.101",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::II)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::II)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::II)]),
+            })),
+        ]
+    }
+
+    fn uu_to_u_u_rules() -> Vec<Box<dyn Rule>> {
+        // NOTE: ( उ  or ऊ  ) should not be added at the end of left candidate, that's why
+        // we did't choose [IndependentVowl] for the `left` window in this rule
+        vec![
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-u1",
+                desc: "ऊ => उ + उ",
+                tag: "6.1.101",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::U)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::U)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::UU)]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-u2",
+                desc: "ऊ => ऊ + उ",
+                tag: "6.1.101",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::UU)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::U)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::UU)]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-u3",
+                desc: "ऊ => उ + ऊ",
+                tag: "6.1.101",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::U)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::UU)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::UU)]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-u4",
+                desc: "ऊ => ऊ + ऊ",
+                tag: "6.1.101",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::UU)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::UU)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::UU)]),
             })),
         ]
     }
@@ -46,6 +148,45 @@ impl SvarDirgha {
                 tag: "6.1.101",
                 left: Akshara(vec![SoundClass::Vowel(Vowel::R)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::R)]),
+                merged: Akshara(vec![
+                    SoundClass::Vowel(Vowel::R),
+                    SoundClass::Vowel(Vowel::R),
+                ]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-r2",
+                desc: "ॠ => ॠ + ॠ ",
+                tag: "6.1.101",
+                left: Akshara(vec![
+                    SoundClass::Vowel(Vowel::R),
+                    SoundClass::Vowel(Vowel::R),
+                ]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::R)]),
+                merged: Akshara(vec![
+                    SoundClass::Vowel(Vowel::R),
+                    SoundClass::Vowel(Vowel::R),
+                ]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-r3",
+                desc: "ॠ => ॠ + ॠ ",
+                tag: "6.1.101",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::R)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::RR)]),
+                merged: Akshara(vec![
+                    SoundClass::Vowel(Vowel::R),
+                    SoundClass::Vowel(Vowel::R),
+                ]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-dīrgha-r1",
+                desc: "ॠ => ॠ + ॠ ",
+                tag: "6.1.101",
+                left: Akshara(vec![
+                    SoundClass::Vowel(Vowel::R),
+                    SoundClass::Vowel(Vowel::R),
+                ]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::RR)]),
                 merged: Akshara(vec![
                     SoundClass::Vowel(Vowel::R),
                     SoundClass::Vowel(Vowel::R),
@@ -242,9 +383,9 @@ mod tests {
             ("मातृृणम्", vec![vec!["मातृ", "ऋणम्"]]),
             ("कर्तृृणम्", vec![vec!["कर्तृ", "ऋणम्"]]),
             ("कर्तृृणि", vec![vec!["कर्तृ", "ऋणि"]]),
-            ("कर्तृृद्धिः", vec![vec!["कर्तृ", "ऋद्धि"]]),
+            ("कर्तृृद्धिः", vec![vec!["कर्तृ", "ऋद्धि:"]]),
             ("धातृृकारः", vec![vec!["धातृ", "ऋकारः"]]),
-            ("भर्तृृद्धिः", vec![vec!["भर्तृ", "ऋद्धि"]]),
+            ("भर्तृृद्धिः", vec![vec!["भर्तृ", "ऋद्धि:"]]),
             ("होतृृषिः", vec![vec!["होतृ", "ऋषिः"]]),
         ];
 
