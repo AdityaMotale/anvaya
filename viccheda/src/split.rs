@@ -1,4 +1,4 @@
-use crate::rules::{dirgha::SvarDirgha, Rule, RuleData};
+use crate::rules::{get_rules, Rule, RuleData};
 use logger::{tracef, Logger, PrettyVec};
 use std::collections::HashSet;
 use unicode_normalization::UnicodeNormalization;
@@ -51,7 +51,7 @@ pub(crate) struct Splitter {
 impl Splitter {
     pub fn new(debug: bool) -> Self {
         Self {
-            rules: Self::get_rules(),
+            rules: get_rules(),
             logger: Logger::new(debug, "Viccheda::Splitter"),
         }
     }
@@ -116,13 +116,6 @@ impl Splitter {
             CandidateList(&results)
         );
         Some(results)
-    }
-
-    fn get_rules() -> Vec<Box<dyn Rule>> {
-        let mut rules = Vec::new();
-        rules.extend(SvarDirgha::rules());
-
-        rules
     }
 }
 

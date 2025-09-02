@@ -4,7 +4,15 @@ use orthography::{Akshara, AsChar, AsStr};
 use unicode_normalization::UnicodeNormalization;
 use unicode_segmentation::UnicodeSegmentation;
 
-pub(crate) mod dirgha;
+mod svar;
+
+pub(crate) fn get_rules() -> Vec<Box<dyn Rule>> {
+    let mut all_rules = Vec::new();
+
+    all_rules.extend(svar::dirgha::SvarDirgha::rules());
+
+    all_rules
+}
 
 #[derive(Debug, Clone)]
 pub(crate) struct RuleData {
@@ -24,7 +32,12 @@ impl std::fmt::Display for RuleData {
 
 pub(crate) trait Rule: Send + Sync {
     fn data(&self) -> &RuleData;
-    fn apply(&self, splitter: &Splitter, left: &str, right: &str) -> Option<Vec<Candidate>>;
+
+    fn apply(&self, splitter: &Splitter, left: &str, right: &str) -> Option<Vec<Candidate>> {
+        let mut out = Vec::new();
+
+        Some(out)
+    }
 }
 
 pub(crate) struct RuleUtils;
