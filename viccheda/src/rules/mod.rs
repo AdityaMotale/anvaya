@@ -84,7 +84,7 @@ impl Rule for BaseRule {
         if left_base != left {
             let left_candidate = match rule_data.left.as_str() {
                 Some(s) => format!("{left_base}{s}"),
-                None => left_base,
+                None => left_base.clone(),
             };
 
             out.push(Candidate::new(
@@ -93,9 +93,27 @@ impl Rule for BaseRule {
             ));
         }
 
-        // now we recursively generate candidates for left
+        // now we recursively generate candidates for the right side
         if let Some(candidates) = splitter.candidates(right) {
-            candidates.iter().map(|candi| if candi.splits.len() > 1 {});
+            candidates.iter().map(|candi| {
+                if candi.splits.len() > 1 {
+                    let first_combined = match &rule_data.left.as_str() {
+                        Some(s) => format!("{s}{}", candi.splits[0]),
+                        None => candi.splits[0].clone(),
+                    };
+
+                    let mut cand: Candidate = Candidate::new(
+                        Vec::with_capacity(1 + candi.splits.len()),
+                        rule_data.clone(),
+                    );
+
+                    cand.splits.push(left_base.clone());
+                    cand.splits.push(first_combined);
+                    cand.splits.extend(candi.splits.clone().into_iter().skip(1));
+
+                    out.push(cand);
+                }
+            });
         }
 
         Some(out)
@@ -191,24 +209,14 @@ impl RuleUtils {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use env_logger;
-    use once_cell::sync::OnceCell;
+    use crate::init_logger;
     use orthography::{Adjuncts, Vowel};
     use orthography::{AsStr, SoundClass};
 
-    static INIT: OnceCell<Logger> = OnceCell::new();
-
-    fn init_logger() {
-        INIT.get_or_init(|| {
-            let _ = env_logger::builder().is_test(true).try_init();
-            Logger::new(true, "RuleUtils (Test)")
-        });
-    }
-
     #[test]
     fn test_trim_sound_with_sequence() {
-        init_logger();
-        let logger = INIT.get().expect("Custom Logger for test");
+        let log_cell = init_logger("RuleUtils (Test)");
+        let logger = log_cell.get().expect("Custom Logger for test");
 
         let candidates: Vec<(String, &'static str, Akshara, &'static str)> = vec![
             (
