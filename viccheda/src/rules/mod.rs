@@ -6,12 +6,18 @@ use unicode_segmentation::UnicodeSegmentation;
 
 mod svar;
 
-pub(crate) fn get_rules() -> Vec<Box<dyn Rule>> {
+pub(crate) fn get_all_rules() -> Vec<Box<dyn Rule>> {
     let mut all_rules = Vec::new();
 
     all_rules.extend(svar::dirgha::SvarDirgha::rules());
 
     all_rules
+}
+
+pub(crate) trait Rule: Send + Sync {
+    fn data(&self) -> &RuleData;
+
+    fn apply(&self, splitter: &Splitter, left: &str, right: &str) -> Option<Vec<Candidate>>;
 }
 
 #[derive(Debug, Clone)]
@@ -30,11 +36,67 @@ impl std::fmt::Display for RuleData {
     }
 }
 
-pub(crate) trait Rule: Send + Sync {
-    fn data(&self) -> &RuleData;
+pub(crate) trait RuleGroup {
+    fn rules() -> Vec<Box<dyn Rule>>;
+}
+
+struct BaseRule(pub RuleData);
+
+impl Rule for BaseRule {
+    #[inline]
+    fn data(&self) -> &RuleData {
+        &self.0
+    }
 
     fn apply(&self, splitter: &Splitter, left: &str, right: &str) -> Option<Vec<Candidate>> {
         let mut out = Vec::new();
+        let rule_data = self.data();
+
+        let left_base =
+            match RuleUtils::trim_sound_with_akshara(&left, &rule_data.merged, &splitter.logger) {
+                Some(b) => b,
+                None => return None,
+            };
+
+        // sanity check
+        if left_base.is_empty() {
+            debugf!(
+                &splitter.logger,
+                "[(BASE) Rule Apply] left_base {left_base} is empty after trimming"
+            );
+
+            return None;
+        };
+
+        let right_candidate = match rule_data.right.as_str() {
+            Some(s) => format!("{s}{right}"),
+            None => right.to_string(),
+        };
+
+        // first candidate (left + right_candidate)
+        out.push(Candidate::new(
+            vec![left.to_string(), right_candidate.clone()],
+            rule_data.clone(),
+        ));
+
+        // second candidate (left_trimmed + right_candidate),
+        // only if left_base != left
+        if left_base != left {
+            let left_candidate = match rule_data.left.as_str() {
+                Some(s) => format!("{left_base}{s}"),
+                None => left_base,
+            };
+
+            out.push(Candidate::new(
+                vec![left_candidate, right_candidate],
+                rule_data.clone(),
+            ));
+        }
+
+        // now we recursively generate candidates for left
+        if let Some(candidates) = splitter.candidates(right) {
+            candidates.iter().map(|candi| if candi.splits.len() > 1 {});
+        }
 
         Some(out)
     }
@@ -89,7 +151,7 @@ impl RuleUtils {
 
                     tracef!(
                         logger,
-                        "[Sound Trim] matched `{}` for {} ;; new tail=`{}`",
+                        "[Sound Trim] (MATCH) `{}` for {} ;; new tail=`{}`",
                         expected_str,
                         soundclass.as_char(),
                         tail

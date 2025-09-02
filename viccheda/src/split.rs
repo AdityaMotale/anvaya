@@ -1,4 +1,4 @@
-use crate::rules::{get_rules, Rule, RuleData};
+use crate::rules::{get_all_rules, Rule, RuleData};
 use logger::{tracef, Logger, PrettyVec};
 use std::collections::HashSet;
 use unicode_normalization::UnicodeNormalization;
@@ -7,14 +7,14 @@ use unicode_segmentation::UnicodeSegmentation;
 #[derive(Debug, Clone)]
 pub(crate) struct Candidate {
     pub splits: Vec<String>,
-    pub rule: Option<RuleData>,
+    pub rule: RuleData,
 }
 
 #[derive(Debug, Clone)]
 pub(crate) struct CandidateList<'a>(pub &'a [Candidate]);
 
 impl Candidate {
-    pub fn new(splits: Vec<String>, rule: Option<RuleData>) -> Self {
+    pub fn new(splits: Vec<String>, rule: RuleData) -> Self {
         Self { splits, rule }
     }
 }
@@ -24,10 +24,7 @@ impl std::fmt::Display for Candidate {
         let strs: Vec<&str> = self.splits.iter().map(String::as_str).collect();
         let splits = PrettyVec(strs);
 
-        match &self.rule {
-            Some(rule) => write!(f, "{:?} -> {}", splits, rule),
-            None => write!(f, "{:?}", splits),
-        }
+        write!(f, "{:?} -> {}", splits, self.rule)
     }
 }
 
@@ -51,7 +48,7 @@ pub(crate) struct Splitter {
 impl Splitter {
     pub fn new(debug: bool) -> Self {
         Self {
-            rules: get_rules(),
+            rules: get_all_rules(),
             logger: Logger::new(debug, "Viccheda::Splitter"),
         }
     }
@@ -161,36 +158,36 @@ mod tests {
                     for (i, cand) in candidates.iter().enumerate() {
                         let joined = cand.splits.join(" | ");
 
-                        if let Some(rule) = &cand.rule {
-                            let rule_name = rule.name;
-                            let rule_tag = rule.tag;
+                        let rule = &cand.rule;
 
-                            let left_sc: String = rule
-                                .left
-                                .0
-                                .iter()
-                                .map(|sc| sc.as_str().unwrap_or("<UNK>"))
-                                .collect();
+                        let rule_name = rule.name;
+                        let rule_tag = rule.tag;
 
-                            let right_sc: String = rule
-                                .right
-                                .0
-                                .iter()
-                                .map(|sc| sc.as_str().unwrap_or("<UNK>"))
-                                .collect();
+                        let left_sc: String = rule
+                            .left
+                            .0
+                            .iter()
+                            .map(|sc| sc.as_str().unwrap_or("<UNK>"))
+                            .collect();
 
-                            let merged_sc: String = rule
-                                .right
-                                .0
-                                .iter()
-                                .map(|sc| sc.as_str().unwrap_or("<UNK>"))
-                                .collect();
+                        let right_sc: String = rule
+                            .right
+                            .0
+                            .iter()
+                            .map(|sc| sc.as_str().unwrap_or("<UNK>"))
+                            .collect();
 
-                            debug.push_str(&format!(
-                                "candidate {}: {}\n  rule: {} (tag {})\n  left/right/merged: {} / {} / {}\n\n",
-                                i, joined, rule_name, rule_tag, left_sc, right_sc, merged_sc
-                            ));
-                        }
+                        let merged_sc: String = rule
+                            .right
+                            .0
+                            .iter()
+                            .map(|sc| sc.as_str().unwrap_or("<UNK>"))
+                            .collect();
+
+                        debug.push_str(&format!(
+                             "candidate {}: {}\n  rule: {} (tag {})\n  left/right/merged: {} / {} / {}\n\n",
+                             i, joined, rule_name, rule_tag, left_sc, right_sc, merged_sc
+                        ));
                     }
 
                     panic!(

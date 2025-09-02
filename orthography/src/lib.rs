@@ -549,3 +549,18 @@ impl std::fmt::Display for Akshara {
         write!(f, " {strs} ( {chrs} )")
     }
 }
+
+impl Akshara {
+    pub fn as_str(&self) -> Option<String> {
+        let mut out = String::new();
+
+        for c in &self.0 {
+            match c.as_str() {
+                Some(s) => out.push_str(s),
+                None => return None,
+            }
+        }
+
+        Some(out)
+    }
+}
