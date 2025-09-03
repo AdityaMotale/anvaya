@@ -59,11 +59,6 @@ impl Rule for BaseRule {
                 None => return None,
             };
 
-        // sanity check
-        if left_base.is_empty() {
-            return Some(out);
-        };
-
         let right_candidate = match rule_data.right.as_str() {
             Some(s) => format!("{s}{right}"),
             None => right.to_string(),
@@ -76,15 +71,14 @@ impl Rule for BaseRule {
         ));
 
         // second candidate (left_trimmed + right_candidate),
-        // only if left_base != left
-        if left_base != left {
-            let left_candidate = match rule_data.left.as_str() {
-                Some(s) => format!("{left_base}{s}"),
-                None => left_base.clone(),
-            };
+        let left_candidate = match rule_data.left.as_str() {
+            Some(s) => format!("{left_base}{s}"),
+            None => left_base.clone(),
+        };
 
+        if !left_candidate.is_empty() {
             out.push(Candidate::new(
-                vec![left_candidate, right_candidate],
+                vec![left_candidate, right_candidate.clone()],
                 rule_data.clone(),
             ));
         }
