@@ -10,6 +10,7 @@ pub(crate) fn get_all_rules() -> Vec<Box<dyn Rule>> {
     let mut all_rules = Vec::new();
 
     all_rules.extend(svar::dirgha::SvarDirgha::rules());
+    all_rules.extend(svar::guna::SvarGuna::rules());
 
     all_rules
 }

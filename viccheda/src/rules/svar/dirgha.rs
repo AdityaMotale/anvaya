@@ -12,11 +12,11 @@ impl RuleGroup for SvarDirgha {
     fn rules() -> Vec<Box<dyn Rule>> {
         let mut rls = Vec::new();
 
-        rls.extend(Self::aa_to_a_a_rules());
-        rls.extend(Self::aa_to_a_a_anusvara_rules());
-        rls.extend(Self::ii_to_i_i_rules());
-        rls.extend(Self::uu_to_u_u_rules());
-        rls.extend(Self::rr_to_r_r_rules());
+        rls.extend(Self::aa_to_a_a());
+        rls.extend(Self::aa_to_a_a_anusvara());
+        rls.extend(Self::ii_to_i_i());
+        rls.extend(Self::uu_to_u_u());
+        rls.extend(Self::rr_to_r_r());
 
         rls
     }
@@ -29,7 +29,7 @@ impl RuleGroup for SvarDirgha {
 // NOTE: Vowels like (अ ) should not be added at the end of left candidate, that's why
 // we did't choose [IndependentVowl] for the `left` window in the rules
 impl SvarDirgha {
-    fn aa_to_a_a_rules() -> Vec<Box<dyn Rule>> {
+    fn aa_to_a_a() -> Vec<Box<dyn Rule>> {
         vec![
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-a1",
@@ -66,7 +66,7 @@ impl SvarDirgha {
         ]
     }
 
-    fn aa_to_a_a_anusvara_rules() -> Vec<Box<dyn Rule>> {
+    fn aa_to_a_a_anusvara() -> Vec<Box<dyn Rule>> {
         vec![
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-A1",
@@ -127,7 +127,7 @@ impl SvarDirgha {
         ]
     }
 
-    fn ii_to_i_i_rules() -> Vec<Box<dyn Rule>> {
+    fn ii_to_i_i() -> Vec<Box<dyn Rule>> {
         vec![
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-i1",
@@ -164,7 +164,7 @@ impl SvarDirgha {
         ]
     }
 
-    fn uu_to_u_u_rules() -> Vec<Box<dyn Rule>> {
+    fn uu_to_u_u() -> Vec<Box<dyn Rule>> {
         vec![
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-u1",
@@ -201,7 +201,7 @@ impl SvarDirgha {
         ]
     }
 
-    fn rr_to_r_r_rules() -> Vec<Box<dyn Rule>> {
+    fn rr_to_r_r() -> Vec<Box<dyn Rule>> {
         vec![
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-r1",
@@ -262,18 +262,18 @@ mod tests {
     use crate::split::test_sandhi_cases;
 
     fn create_logger() {
-        let _ = crate::init_logger("RuleUtils (Test)");
+        let _ = crate::init_logger("SvarDirgha Rules (Test)");
     }
 
     #[test]
-    fn aa_to_a_a_debug() {
+    fn aa_to_a_a_test_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("परास्तः", vec![vec!["परा", "अस्तः"]])];
         test_sandhi_cases(cases, true);
     }
 
     #[test]
-    fn aa_to_a_a() {
+    fn aa_to_a_a_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("प्रार्थी", vec![vec!["प्र", "अर्थी"]]),
             ("श्रद्धास्ति", vec![vec!["श्रद्धा", "अस्ति"]]),
@@ -337,14 +337,14 @@ mod tests {
     }
 
     #[test]
-    fn aa_to_a_a_anusvara_debug() {
+    fn aa_to_a_a_anusvara_test_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("सर्वांगीणः", vec![vec!["सर्व", "अंगीणः"]])];
         test_sandhi_cases(cases, true);
     }
 
     #[test]
-    fn aa_to_a_a_anusvara() {
+    fn aa_to_a_a_anusvara_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("सर्वांगीणः", vec![vec!["सर्व", "अंगीणः"]]),
             ("मूल्यांकनः", vec![vec!["मूल्य", "अंकनः"]]),
@@ -358,14 +358,14 @@ mod tests {
     }
 
     #[test]
-    fn ii_to_i_i_debug() {
+    fn ii_to_i_i_test_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("श्रीशः", vec![vec!["श्री", "ईशः"]])];
         test_sandhi_cases(cases, true);
     }
 
     #[test]
-    fn ii_to_i_i() {
+    fn ii_to_i_i_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("श्रीशः", vec![vec!["श्री", "ईशः"]]),
             ("गौरीशः", vec![vec!["गौरी", "ईशः"]]),
@@ -404,14 +404,14 @@ mod tests {
     }
 
     #[test]
-    fn uu_to_u_u_debug() {
+    fn uu_to_u_u_test_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("विष्णूदयः", vec![vec!["विष्णु", "उदयः"]])];
         test_sandhi_cases(cases, true);
     }
 
     #[test]
-    fn uu_to_u_u() {
+    fn uu_to_u_u_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("विष्णूदयः", vec![vec!["विष्णु", "उदयः"]]),
             ("भानूदयः", vec![vec!["भानु", "उदयः"]]),
@@ -436,14 +436,14 @@ mod tests {
     }
 
     #[test]
-    fn rr_to_r_r_debug() {
+    fn rr_to_r_r_test_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("पितृृणम्", vec![vec!["पितृ", "ऋणम्"]])];
         test_sandhi_cases(cases, true);
     }
 
     #[test]
-    fn rr_to_r_r() {
+    fn rr_to_r_r_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("होतृृकारः", vec![vec!["होतृ", "ऋकारः"]]),
             ("पितृृणम्", vec![vec!["पितृ", "ऋणम्"]]),
