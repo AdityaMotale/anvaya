@@ -61,12 +61,7 @@ impl Rule for BaseRule {
 
         // sanity check
         if left_base.is_empty() {
-            debugf!(
-                &splitter.logger,
-                "[(BASE) Rule Apply] left_base {left_base} is empty after trimming"
-            );
-
-            return None;
+            return Some(out);
         };
 
         let right_candidate = match rule_data.right.as_str() {
