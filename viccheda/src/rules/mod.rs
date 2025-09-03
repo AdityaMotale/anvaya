@@ -29,6 +29,7 @@ pub(crate) struct RuleData {
     pub left: Akshara,
     pub right: Akshara,
     pub merged: Akshara,
+    pub special_sequence: Option<Akshara>,
 }
 
 impl std::fmt::Display for RuleData {
@@ -53,8 +54,18 @@ impl Rule for BaseRule {
         let mut out = Vec::new();
         let rule_data = self.data();
 
+        let merged_akshara_to_trim = if let Some(special_seq) = &rule_data.special_sequence {
+            // If special_sequence exists, combine it with the merged Akshara
+            let mut combined_vec = rule_data.merged.0.clone();
+            combined_vec.extend(special_seq.0.clone());
+            Akshara(combined_vec)
+        } else {
+            // Otherwise, just use the merged Akshara
+            rule_data.merged.clone()
+        };
+
         let left_base =
-            match RuleUtils::trim_sound_with_akshara(&left, &rule_data.merged, &splitter.logger) {
+            match RuleUtils::trim_sound_with_akshara(&left, &merged_akshara_to_trim, &splitter.logger) {
                 Some(b) => b,
                 None => return None,
             };

@@ -38,6 +38,7 @@ impl SvarDirgha {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::A)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-a2",
@@ -46,6 +47,7 @@ impl SvarDirgha {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::A)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-a3",
@@ -54,6 +56,7 @@ impl SvarDirgha {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AA)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-a4",
@@ -62,6 +65,7 @@ impl SvarDirgha {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AA)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+                special_sequence: None,
             })),
         ]
     }
@@ -81,6 +85,7 @@ impl SvarDirgha {
                     SoundClass::Vowel(Vowel::AA),
                     SoundClass::Adjuncts(Adjuncts::ANUSVARA),
                 ]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-A2",
@@ -95,6 +100,7 @@ impl SvarDirgha {
                     SoundClass::Vowel(Vowel::AA),
                     SoundClass::Adjuncts(Adjuncts::ANUSVARA),
                 ]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-A3",
@@ -109,6 +115,7 @@ impl SvarDirgha {
                     SoundClass::Vowel(Vowel::AA),
                     SoundClass::Adjuncts(Adjuncts::ANUSVARA),
                 ]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-A4",
@@ -123,6 +130,7 @@ impl SvarDirgha {
                     SoundClass::Vowel(Vowel::AA),
                     SoundClass::Adjuncts(Adjuncts::ANUSVARA),
                 ]),
+                special_sequence: None,
             })),
         ]
     }
@@ -136,6 +144,7 @@ impl SvarDirgha {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::I)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::I)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::II)]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-i2",
@@ -144,6 +153,7 @@ impl SvarDirgha {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::II)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::I)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::II)]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-i3",
@@ -152,6 +162,7 @@ impl SvarDirgha {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::I)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::II)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::II)]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-i4",
@@ -160,6 +171,7 @@ impl SvarDirgha {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::II)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::II)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::II)]),
+                special_sequence: None,
             })),
         ]
     }
@@ -173,6 +185,7 @@ impl SvarDirgha {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::U)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::U)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::UU)]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-u2",
@@ -181,6 +194,7 @@ impl SvarDirgha {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::UU)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::U)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::UU)]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-u3",
@@ -189,6 +203,7 @@ impl SvarDirgha {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::U)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::UU)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::UU)]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-u4",
@@ -197,6 +212,7 @@ impl SvarDirgha {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::UU)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::UU)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::UU)]),
+                special_sequence: None,
             })),
         ]
     }
@@ -213,6 +229,7 @@ impl SvarDirgha {
                     SoundClass::Vowel(Vowel::R),
                     SoundClass::Vowel(Vowel::R),
                 ]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-r2",
@@ -227,6 +244,7 @@ impl SvarDirgha {
                     SoundClass::Vowel(Vowel::R),
                     SoundClass::Vowel(Vowel::R),
                 ]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-r3",
@@ -238,6 +256,7 @@ impl SvarDirgha {
                     SoundClass::Vowel(Vowel::R),
                     SoundClass::Vowel(Vowel::R),
                 ]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-dīrgha-r4",
@@ -252,6 +271,7 @@ impl SvarDirgha {
                     SoundClass::Vowel(Vowel::R),
                     SoundClass::Vowel(Vowel::R),
                 ]),
+                special_sequence: None,
             })),
         ]
     }
@@ -344,6 +364,7 @@ mod tests {
     }
 
     #[test]
+    // special cases w/ sequence of AA + ANUSVARA
     fn aa_to_a_a_anusvara_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("सर्वांगीणः", vec![vec!["सर्व", "अंगीणः"]]),

@@ -15,6 +15,7 @@ impl RuleGroup for SvarGuna {
         rls.extend(Self::e_to_a_i());
         rls.extend(Self::o_to_a_u());
         rls.extend(Self::o_indep_to_a_u());
+        rls.extend(Self::o_to_a_u_anusvara());
 
         rls
     }
@@ -30,6 +31,7 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::I)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::E)]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-e2",
@@ -38,6 +40,7 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::II)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::E)]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-e3",
@@ -46,6 +49,7 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::I)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::E)]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-e4",
@@ -54,11 +58,12 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::II)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::E)]),
+                special_sequence: None,
             })),
         ]
     }
 
-    fn o_to_a_u() -> Vec<Box<dyn Rule>> {
+    fn o_to_a_u_anusvara() -> Vec<Box<dyn Rule>> {
         vec![
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-o1",
@@ -67,6 +72,7 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::U)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::O)]),
+                special_sequence: Some(Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)])),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-o2",
@@ -75,6 +81,7 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::UU)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::O)]),
+                special_sequence: Some(Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)])),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-o3",
@@ -83,6 +90,7 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::U)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::O)]),
+                special_sequence: Some(Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)])),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-o4",
@@ -91,6 +99,7 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::II)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::O)]),
+                special_sequence: Some(Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)])),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-o5",
@@ -99,6 +108,7 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::UU)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::O)]),
+                special_sequence: Some(Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)])),
             })),
         ]
     }
@@ -112,6 +122,7 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::U)]),
                 merged: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::O)]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-O2",
@@ -120,6 +131,7 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::UU)]),
                 merged: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::O)]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-O3",
@@ -128,6 +140,7 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::U)]),
                 merged: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::O)]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-O4",
@@ -136,6 +149,7 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::U)]),
                 merged: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::O)]),
+                special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-O5",
@@ -144,6 +158,57 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::UU)]),
                 merged: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::O)]),
+                special_sequence: None,
+            })),
+        ]
+    }
+
+    fn o_to_a_u() -> Vec<Box<dyn Rule>> {
+        vec![
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-guṇa-o1-no-anusvara",
+                desc: "ओ  = अ + उ ",
+                tag: "6.1.87",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::U)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::O)]),
+                special_sequence: None,
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-guṇa-o2-no-anusvara",
+                desc: "ओ  = अ + ऊ ",
+                tag: "6.1.87",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::UU)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::O)]),
+                special_sequence: None,
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-guṇa-o3-no-anusvara",
+                desc: "ओ  = आ  + उ ",
+                tag: "6.1.87",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::U)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::O)]),
+                special_sequence: None,
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-guṇa-o4-no-anusvara",
+                desc: "ओ  = आ  + ई ",
+                tag: "6.1.87",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::II)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::O)]),
+                special_sequence: None,
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-guṇa-o5-no-anusvara",
+                desc: "ओ  = आ  + ऊ ",
+                tag: "6.1.87",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::UU)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::O)]),
+                special_sequence: None,
             })),
         ]
     }
@@ -207,12 +272,19 @@ mod tests {
     #[test]
     fn o_to_a_u_test_debug() {
         create_logger();
-        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("ओदकान्तम्", vec![vec!["आ", "उदकान्तम्"]])];
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("जलोंर्मिः", vec![vec!["जल", "ऊर्मिः"]])];
         test_sandhi_cases(cases, true);
     }
 
     #[test]
     fn o_to_a_u_test() {
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("जलोंर्मिः", vec![vec!["जल", "ऊर्मिः"]])];
+
+        test_sandhi_cases(cases, false);
+    }
+
+    #[test]
+    fn o_to_a_u_no_anusvara_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("सूर्योदयः", vec![vec!["सूर्य", "उदयः"]]),
             ("पूर्वोदयः", vec![vec!["पूर्व", "उदयः"]]),
@@ -232,12 +304,11 @@ mod tests {
             ("माययोर्जस्वि", vec![vec!["मायया", "ऊर्जस्वि"]]),
             ("महोर्णम्", vec![vec!["महा", "ऊर्णम्"]]),
             ("समुद्रोर्मिः", vec![vec!["समुद्र", "ऊर्मिः"]]),
-            ("जलोंर्मिः", vec![vec!["जल", "ऊर्मिः"]]),
             ("गंगोर्मिः", vec![vec!["गंगा", "ऊर्मिः"]]),
             ("महोर्मिः", vec![vec!["महा", "ऊर्मिः"]]),
             ("वीरोचितः", vec![vec!["वीर", "उचितः"]]),
             ("आद्योपान्तः", vec![vec!["आद्य", "उपान्तः"]]),
-            ("नवोढ़ा", vec![vec!["नव", "ऊढा"]]),
+            ("नवोढ़ा", vec![vec!["नव", "ऊढ़ा"]]),
             ("महोदधिः", vec![vec!["महा", "उदधिः"]]),
             ("यथोचितम्", vec![vec!["यथा", "उचितम्"]]),
             ("कथोपकथनम्", vec![vec!["कथा", "उपकथनम्"]]),
