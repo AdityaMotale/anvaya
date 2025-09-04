@@ -1,5 +1,6 @@
 use crate::rules::{get_all_rules, Rule, RuleData};
-use logger::{tracef, Logger, PrettyVec};
+use logger::{debugf, tracef, Logger, PrettyVec};
+use orthography::Akshara;
 use std::collections::HashSet;
 use unicode_normalization::UnicodeNormalization;
 use unicode_segmentation::UnicodeSegmentation;
@@ -65,7 +66,7 @@ impl Splitter {
         let graphemes: Vec<&str> =
             UnicodeSegmentation::graphemes(morpheme.as_str(), true).collect();
 
-        tracef!(
+        debugf!(
             self.logger,
             "{morpheme} => \n{:?}\n{:?}",
             PrettyVec(graphemes.clone()),
@@ -89,18 +90,28 @@ impl Splitter {
             let right = graphemes[i..].join("");
 
             for rule in &self.rules {
-                if let Some(candidates) = rule.apply(self, &left, &right) {
-                    tracef!(
-                        &self.logger,
-                        "Rule '{}' applied to {morpheme}",
-                        &rule.data().name
-                    );
+                let special_sequence = &rule.data().special_sequence;
 
-                    for cand in candidates {
-                        let key = cand.splits.join("|");
+                let custom_iter: Box<dyn Iterator<Item = Option<&(Akshara, bool)>>> =
+                    match special_sequence {
+                        Some(seq) => Box::new(seq.iter().map(Some)),
+                        None => Box::new(std::iter::once(None)),
+                    };
 
-                        if seen.insert(key) {
-                            results.push(cand);
+                for sp in custom_iter {
+                    if let Some(candidates) = rule.apply(self, &left, &right, sp) {
+                        tracef!(
+                            &self.logger,
+                            "Rule '{}' applied to {morpheme}",
+                            &rule.data().name
+                        );
+
+                        for cand in candidates {
+                            let key = cand.splits.join("|");
+
+                            if seen.insert(key) {
+                                results.push(cand);
+                            }
                         }
                     }
                 }

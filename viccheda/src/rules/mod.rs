@@ -18,7 +18,13 @@ pub(crate) fn get_all_rules() -> Vec<Box<dyn Rule>> {
 pub(crate) trait Rule: Send + Sync {
     fn data(&self) -> &RuleData;
 
-    fn apply(&self, splitter: &Splitter, left: &str, right: &str) -> Option<Vec<Candidate>>;
+    fn apply(
+        &self,
+        splitter: &Splitter,
+        left: &str,
+        right: &str,
+        sp: Option<&(Akshara, bool)>,
+    ) -> Option<Vec<Candidate>>;
 }
 
 #[derive(Debug, Clone)]
@@ -29,7 +35,7 @@ pub(crate) struct RuleData {
     pub left: Akshara,
     pub right: Akshara,
     pub merged: Akshara,
-    pub special_sequence: Option<Akshara>,
+    pub special_sequence: Option<Vec<(Akshara, bool)>>,
 }
 
 impl std::fmt::Display for RuleData {
@@ -50,28 +56,55 @@ impl Rule for BaseRule {
         &self.0
     }
 
-    fn apply(&self, splitter: &Splitter, left: &str, right: &str) -> Option<Vec<Candidate>> {
+    fn apply(
+        &self,
+        splitter: &Splitter,
+        left: &str,
+        right: &str,
+        sp: Option<&(Akshara, bool)>,
+    ) -> Option<Vec<Candidate>> {
         let mut out = Vec::new();
         let rule_data = self.data();
 
-        let merged_akshara_to_trim = if let Some(special_seq) = &rule_data.special_sequence {
-            // If special_sequence exists, combine it with the merged Akshara
+        // a kind of priority list for possibel merges
+        let mut merge_candidates: Vec<Akshara> = Vec::with_capacity(2);
+
+        // first merge_candidate
+        if let Some((aksh, _)) = sp {
             let mut combined_vec = rule_data.merged.0.clone();
-            combined_vec.extend(special_seq.0.clone());
-            Akshara(combined_vec)
-        } else {
-            // Otherwise, just use the merged Akshara
-            rule_data.merged.clone()
+            combined_vec.extend(aksh.0.clone());
+
+            let special_merged = Akshara(combined_vec);
+
+            if special_merged != rule_data.merged {
+                merge_candidates.push(special_merged);
+            }
+        }
+
+        // second merge_candidate
+        merge_candidates.push(rule_data.merged.clone());
+
+        let left_base_opt = merge_candidates
+            .iter()
+            .find_map(|sound| RuleUtils::trim_sound_with_akshara(&left, &sound, &splitter.logger));
+
+        let left_base = match left_base_opt {
+            Some(b) => b,
+            None => return None,
         };
 
-        let left_base =
-            match RuleUtils::trim_sound_with_akshara(&left, &merged_akshara_to_trim, &splitter.logger) {
-                Some(b) => b,
-                None => return None,
-            };
-
         let right_candidate = match rule_data.right.as_str() {
-            Some(s) => format!("{s}{right}"),
+            Some(s) => {
+                if let Some((aksh, to_add)) = sp {
+                    if *to_add && aksh.as_str().is_some() {
+                        format!("{s}{}{right}", aksh.as_str().unwrap())
+                    } else {
+                        format!("{s}{right}")
+                    }
+                } else {
+                    format!("{s}{right}")
+                }
+            }
             None => right.to_string(),
         };
 
