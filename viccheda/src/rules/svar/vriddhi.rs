@@ -13,15 +13,12 @@ impl RuleGroup for SvarVriddhi {
         let mut rls = Vec::new();
 
         rls.extend(Self::ai_to_a_e());
+        rls.extend(Self::au_to_a_o());
 
         rls
     }
 }
 
-//  अ
-//  आ
-//  ए
-//  ऐ
 impl SvarVriddhi {
     fn ai_to_a_e() -> Vec<Box<dyn Rule>> {
         vec![
@@ -59,6 +56,47 @@ impl SvarVriddhi {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AI)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::AI)]),
+                special_sequence: None,
+            })),
+        ]
+    }
+
+    fn au_to_a_o() -> Vec<Box<dyn Rule>> {
+        vec![
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-vṛddhi-au1",
+                desc: "औ  = अ + औ ",
+                tag: "6.1.88",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AU)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::AU)]),
+                special_sequence: None,
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-vṛddhi-au2",
+                desc: "औ  = अ + ओ ",
+                tag: "6.1.88",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::O)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::AU)]),
+                special_sequence: None,
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-vṛddhi-au3",
+                desc: "औ  = आ  + ओ ",
+                tag: "6.1.88",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::O)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::AU)]),
+                special_sequence: None,
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-vṛddhi-au4",
+                desc: "औ  = आ  + औ ",
+                tag: "6.1.88",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AU)]),
+                merged: Akshara(vec![SoundClass::Vowel(Vowel::AU)]),
                 special_sequence: None,
             })),
         ]
@@ -114,6 +152,46 @@ mod tests {
             ("अत्रैकम्", vec![vec!["अत्र", "एकम्"]]),
             ("जनैकता", vec![vec!["जन", "एकता"]]),
             ("स्वैच्छिकम्", vec![vec!["स्व", "ऐच्छिकम्"]]),
+        ];
+
+        test_sandhi_cases(cases, false);
+    }
+
+    #[test]
+    fn au_to_a_o_test_debug() {
+        create_logger();
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("कृष्णौत्कण्ठ्यम्", vec![vec!["कृष्ण", "औत्कण्ठ्यम्"]])];
+        test_sandhi_cases(cases, true);
+    }
+
+    #[test]
+    fn au_to_a_o_test() {
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
+            ("कृष्णौत्कण्ठ्यम्", vec![vec!["कृष्ण", "औत्कण्ठ्यम्"]]),
+            ("ममौत्कण्ठ्यम्", vec![vec!["मम", "औत्कण्ठ्यम्"]]),
+            ("तवौदार्यम्", vec![vec!["तव", "औदार्यम्"]]),
+            ("जनौचित्यम्", vec![vec!["जन", "औचित्यम्"]]),
+            ("विद्यौचित्यम्", vec![vec!["विद्या", "औचित्यम्"]]),
+            ("महौदार्यम्", vec![vec!["महा", "औदार्यम्"]]),
+            ("परमौदार्यम्", vec![vec!["परम", "औदार्यम्"]]),
+            ("देवौदार्यम्", vec![vec!["देव", "औदार्यम्"]]),
+            ("रामौत्सुक्यम्", vec![vec!["राम", "औत्सुक्यम्"]]),
+            ("क्रीडौत्सुक्यम्", vec![vec!["क्रीडा", "औत्सुक्यम्"]]),
+            ("दर्शनौत्सुक्यम्", vec![vec!["दर्शन", "औत्सुक्यम्"]]),
+            ("सदौत्सुक्यम्", vec![vec!["सदा", "औत्सुक्यम्"]]),
+            ("महौषधिः", vec![vec!["महा", "औषधिः"]]),
+            ("वनौषधिः", vec![vec!["वन", "औषधिः"]]),
+            ("तीक्ष्णौषधिः", vec![vec!["तीक्ष्ण", "औषधिः"]]),
+            ("परमौषधिः", vec![vec!["परम", "औषधिः"]]),
+            ("प्रौद्योगिकी", vec![vec!["प्र", "औद्योगिकी"]]),
+            ("बिम्बौष्ठी", vec![vec!["बिम्ब", "औष्ठी"]]),
+            ("ममौदासीन्यम्", vec![vec!["मम", "औदासीन्यम्"]]),
+            ("तण्डुलौदनम्", vec![vec!["तण्डुल", "ओदनम्"]]),
+            ("परमौजः", vec![vec!["परम", "ओजः"]]),
+            ("महौघः", vec![vec!["महा", "औघः"]]),
+            ("जलौघः", vec![vec!["जल", "ओघः"]]),
+            ("गंगौघः", vec![vec!["गंगा", "ओघः"]]),
+            ("मधुरौदनः", vec![vec!["मधुर", "ओदनः"]]),
         ];
 
         test_sandhi_cases(cases, false);
