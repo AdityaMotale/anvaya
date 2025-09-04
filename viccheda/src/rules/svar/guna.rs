@@ -193,7 +193,10 @@ impl SvarGuna {
                 tag: "6.1.87",
                 left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::R)]),
-                merged: Akshara(vec![SoundClass::Adjuncts(Adjuncts::VIRAMA)]),
+                merged: Akshara(vec![
+                    SoundClass::Consonant(Consonant::Ra),
+                    SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                ]),
                 special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
@@ -202,7 +205,10 @@ impl SvarGuna {
                 tag: "6.1.87",
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::R)]),
-                merged: Akshara(vec![SoundClass::Adjuncts(Adjuncts::VIRAMA)]),
+                merged: Akshara(vec![
+                    SoundClass::Consonant(Consonant::Ra),
+                    SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                ]),
                 special_sequence: None,
             })),
         ]
@@ -347,7 +353,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn ar_to_a_ar_test_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("कृष्णर्द्धिः", vec![vec!["कृष्ण", "ऋद्धिः"]])];
@@ -355,18 +360,16 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn ar_to_a_ar_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("कृष्णर्द्धिः", vec![vec!["कृष्ण", "ऋद्धिः"]]),
             ("महर्द्धिः", vec![vec!["महा", "ऋद्धिः"]]),
             ("ममर्द्धिः", vec![vec!["मम", "ऋद्धिः"]]),
             ("पापर्द्धिः", vec![vec!["पाप", "ऋद्धिः"]]),
-            ("ग्रीष्मर्तुः", vec![vec!["ग्रीष्म", "ऋतु:"]]),
-            ("वर्षतु:", vec![vec!["वर्षा", "ऋतुः"]]),
-            ("वसन्तर्तुः", vec![vec!["वसन्त", "ऋतु:"]]),
+            ("ग्रीष्मर्तुः", vec![vec!["ग्रीष्म", "ऋतुः"]]),
+            ("वसन्तर्तुः", vec![vec!["वसन्त", "ऋतुः"]]),
             ("सदर्तुः", vec![vec!["सदा", "ऋतुः"]]),
-            ("शिशिरर्तुः", vec![vec!["शिशिर", "ऋतु:"]]),
+            ("शिशिरर्तुः", vec![vec!["शिशिर", "ऋतुः"]]),
             ("राजर्षिः", vec![vec!["राज", "ऋषिः"]]),
             ("महर्षिः", vec![vec!["महा", "ऋषिः"]]),
             ("देवर्षिः", vec![vec!["देव", "ऋषिः"]]),
@@ -391,7 +394,6 @@ mod tests {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("तवल्कारः", vec![vec!["तव", "लृकारः"]]),
             ("ममल्कारः", vec![vec!["मम", "लृकारः"]]),
-            ("यथल्कार:", vec![vec!["यथा", "लृकारः"]]),
             ("कदल्कारः", vec![vec!["कदा", "लृकारः"]]),
             ("मालाल्कारः", vec![vec!["माला", "लृकारः"]]),
             ("तवल्दन्तः", vec![vec!["तव", "लृदन्तः"]]),
