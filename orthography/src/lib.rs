@@ -506,7 +506,7 @@ fn all_chars_in_devanagari_block() {
 pub enum SoundClass {
     Vowel(Vowel),
     IndependentVowel(IndependentVowel),
-    Consonent(Consonant),
+    Consonant(Consonant),
     Adjuncts(Adjuncts),
 }
 
@@ -516,7 +516,7 @@ impl AsStr for SoundClass {
         match self {
             SoundClass::Vowel(v) => v.as_str(),
             SoundClass::IndependentVowel(v) => v.as_str(),
-            SoundClass::Consonent(c) => c.as_str(),
+            SoundClass::Consonant(c) => c.as_str(),
             SoundClass::Adjuncts(a) => a.as_str(),
         }
     }
@@ -528,7 +528,7 @@ impl AsChar for SoundClass {
         match self {
             SoundClass::Vowel(v) => v.as_char(),
             SoundClass::IndependentVowel(v) => v.as_char(),
-            SoundClass::Consonent(c) => c.as_char(),
+            SoundClass::Consonant(c) => c.as_char(),
             SoundClass::Adjuncts(a) => a.as_char(),
         }
     }
