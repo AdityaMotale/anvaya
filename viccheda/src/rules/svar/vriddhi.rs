@@ -14,6 +14,7 @@ impl RuleGroup for SvarVriddhi {
 
         rls.extend(Self::ai_to_a_e());
         rls.extend(Self::au_to_a_o());
+        rls.extend(Self::ar_to_a_r());
 
         rls
     }
@@ -97,6 +98,37 @@ impl SvarVriddhi {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AU)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::AU)]),
+                special_sequence: None,
+            })),
+        ]
+    }
+
+    fn ar_to_a_r() -> Vec<Box<dyn Rule>> {
+        vec![
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-vṛddhi-ar1",
+                desc: "आर् = अ + ऋ ",
+                tag: "6.1.88",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::R)]),
+                merged: Akshara(vec![
+                    SoundClass::Vowel(Vowel::AA),
+                    SoundClass::Consonant(Consonant::Ra),
+                    SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                ]),
+                special_sequence: None,
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-vṛddhi-ar2",
+                desc: "आर् = आ  + ऋ ",
+                tag: "6.1.88",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::R)]),
+                merged: Akshara(vec![
+                    SoundClass::Vowel(Vowel::AA),
+                    SoundClass::Consonant(Consonant::Ra),
+                    SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                ]),
                 special_sequence: None,
             })),
         ]
@@ -192,6 +224,32 @@ mod tests {
             ("जलौघः", vec![vec!["जल", "ओघः"]]),
             ("गंगौघः", vec![vec!["गंगा", "ओघः"]]),
             ("मधुरौदनः", vec![vec!["मधुर", "ओदनः"]]),
+        ];
+
+        test_sandhi_cases(cases, false);
+    }
+
+    #[test]
+    #[ignore]
+    fn ar_to_a_r_test_debug() {
+        create_logger();
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("दुखार्तः", vec![vec!["दुख", "ऋतः"]])];
+        test_sandhi_cases(cases, true);
+    }
+
+    #[test]
+    #[ignore]
+    fn ar_to_a_r_test() {
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
+            ("दुखार्तः", vec![vec!["दुख", "ऋतः"]]),
+            ("सुखार्तः", vec![vec!["सुख", "ऋतः"]]),
+            ("बुभुक्षार्तः", vec![vec!["बुभुक्षा", "ऋतः"]]),
+            ("पिपासार्तः", vec![vec!["पिपासा", "ऋतः"]]),
+            ("दीनार्तः", vec![vec!["दीन", "ऋतः"]]),
+            ("प्रार्च्छति", vec![vec!["प्र", "ऋच्छति"]]),
+            ("कम्बलार्णम्", vec![vec!["कम्बल", "ऋणम्"]]),
+            ("वसनार्णम्", vec![vec!["वसन", "ऋणम्"]]),
+            ("दशार्णः", vec![vec!["दश", "ऋणः"]]),
         ];
 
         test_sandhi_cases(cases, false);
