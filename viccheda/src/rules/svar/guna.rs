@@ -15,6 +15,7 @@ impl RuleGroup for SvarGuna {
         rls.extend(Self::e_to_a_i());
         rls.extend(Self::o_indep_to_a_u());
         rls.extend(Self::o_to_a_u());
+        rls.extend(Self::ar_to_a_ar());
 
         rls
     }
@@ -176,6 +177,29 @@ impl SvarGuna {
             })),
         ]
     }
+
+    fn ar_to_a_ar() -> Vec<Box<dyn Rule>> {
+        vec![
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-guṇa-ar1",
+                desc: "अर् = अ + ऋ ",
+                tag: "6.1.87",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::R)]),
+                merged: Akshara(vec![SoundClass::Adjuncts(Adjuncts::VIRAMA)]),
+                special_sequence: None,
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "savarṇa-guṇa-ar2",
+                desc: "अर् = आ  + ऋ ",
+                tag: "6.1.87",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
+                right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::R)]),
+                merged: Akshara(vec![SoundClass::Adjuncts(Adjuncts::VIRAMA)]),
+                special_sequence: None,
+            })),
+        ]
+    }
 }
 
 #[cfg(test)]
@@ -278,5 +302,19 @@ mod tests {
         ];
 
         test_sandhi_cases(cases, false);
+    }
+
+    #[test]
+    fn ar_to_a_ar_test_debug() {
+        create_logger();
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("कृष्णर्द्धिः", vec![vec!["कृष्ण", "ऋद्धिः"]])];
+        test_sandhi_cases(cases, true);
+    }
+
+    #[test]
+    fn ar_to_a_ar_test() {
+        create_logger();
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("कृष्णर्द्धिः", vec![vec!["कृष्ण", "ऋद्धिः"]])];
+        test_sandhi_cases(cases, true);
     }
 }
