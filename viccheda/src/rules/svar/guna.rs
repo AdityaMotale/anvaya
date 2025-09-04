@@ -16,6 +16,7 @@ impl RuleGroup for SvarGuna {
         rls.extend(Self::o_indep_to_a_u());
         rls.extend(Self::o_to_a_u());
         rls.extend(Self::ar_to_a_ar());
+        rls.extend(Self::al_to_a_lr());
 
         rls
     }
@@ -216,9 +217,12 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
                 right: Akshara(vec![
                     SoundClass::Consonant(Consonant::La),
-                    SoundClass::IndependentVowel(IndependentVowel::R),
+                    SoundClass::Vowel(Vowel::R),
                 ]),
-                merged: Akshara(vec![SoundClass::Adjuncts(Adjuncts::VIRAMA)]),
+                merged: Akshara(vec![
+                    SoundClass::Consonant(Consonant::La),
+                    SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                ]),
                 special_sequence: None,
             })),
             Box::new(BaseRule(RuleData {
@@ -228,9 +232,12 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![
                     SoundClass::Consonant(Consonant::La),
-                    SoundClass::IndependentVowel(IndependentVowel::R),
+                    SoundClass::Vowel(Vowel::R),
                 ]),
-                merged: Akshara(vec![SoundClass::Adjuncts(Adjuncts::VIRAMA)]),
+                merged: Akshara(vec![
+                    SoundClass::Consonant(Consonant::La),
+                    SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                ]),
                 special_sequence: None,
             })),
         ]
@@ -373,7 +380,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn al_to_a_lr_test_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("तवल्कारः", vec![vec!["तव", "लृकारः"]])];
@@ -381,14 +387,13 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn al_to_a_lr_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("तवल्कारः", vec![vec!["तव", "लृकारः"]]),
             ("ममल्कारः", vec![vec!["मम", "लृकारः"]]),
             ("यथल्कार:", vec![vec!["यथा", "लृकारः"]]),
-            ("कदल्कारः", vec![vec!["कदा", "लृकार:"]]),
-            ("मालाल्कारः", vec![vec!["माला", "लृकार:"]]),
+            ("कदल्कारः", vec![vec!["कदा", "लृकारः"]]),
+            ("मालाल्कारः", vec![vec!["माला", "लृकारः"]]),
             ("तवल्दन्तः", vec![vec!["तव", "लृदन्तः"]]),
             ("सदल्वर्णः", vec![vec!["सदा", "लृवर्णः"]]),
         ];

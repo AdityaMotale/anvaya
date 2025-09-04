@@ -63,31 +63,30 @@ impl Splitter {
         let mut results: Vec<Candidate> = Vec::new();
         let mut seen: HashSet<String> = HashSet::new();
 
-        let graphemes: Vec<&str> =
-            UnicodeSegmentation::graphemes(morpheme.as_str(), true).collect();
+        let chars: Vec<char> = morpheme.chars().collect();
 
         debugf!(
             self.logger,
             "{morpheme} => \n{:?}\n{:?}",
-            PrettyVec(graphemes.clone()),
             PrettyVec(
                 morpheme
-                    .chars()
+                    .graphemes(true)
                     .map(|c| c.to_string())
                     .collect::<Vec<String>>()
             ),
+            PrettyVec(chars.iter().map(|c| c.to_string()).collect::<Vec<String>>()),
         );
 
         // sanity check
-        if graphemes.len() < 2 {
+        if chars.len() < 2 {
             return None;
         }
 
         let mut seen: HashSet<String> = HashSet::new();
 
-        for i in 1..graphemes.len() {
-            let left = graphemes[..i].join("");
-            let right = graphemes[i..].join("");
+        for i in 1..chars.len() {
+            let left: String = chars[..i].iter().collect();
+            let right: String = chars[i..].iter().collect();
 
             for rule in &self.rules {
                 let special_sequence = &rule.data().special_sequence;

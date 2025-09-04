@@ -230,7 +230,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn ar_to_a_r_test_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("दुखार्तः", vec![vec!["दुख", "ऋतः"]])];
@@ -238,7 +237,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn ar_to_a_r_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("दुखार्तः", vec![vec!["दुख", "ऋतः"]]),
