@@ -1,45 +1,12 @@
-use crate::rules::{get_all_rules, Rule, RuleData};
-use logger::{debugf, tracef, Logger, PrettyVec};
+use crate::rules::{
+    get_all_rules,
+    rule::{Candidate, CandidateList, Rule},
+};
+use logger::{debugf, Logger, PrettyVec};
 use orthography::Akshara;
 use std::collections::HashSet;
 use unicode_normalization::UnicodeNormalization;
 use unicode_segmentation::UnicodeSegmentation;
-
-#[derive(Debug, Clone)]
-pub(crate) struct Candidate {
-    pub splits: Vec<String>,
-    pub rule: RuleData,
-}
-
-#[derive(Debug, Clone)]
-pub(crate) struct CandidateList<'a>(pub &'a [Candidate]);
-
-impl Candidate {
-    pub fn new(splits: Vec<String>, rule: RuleData) -> Self {
-        Self { splits, rule }
-    }
-}
-
-impl std::fmt::Display for Candidate {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let strs: Vec<&str> = self.splits.iter().map(String::as_str).collect();
-        let splits = PrettyVec(strs);
-
-        write!(f, "{:?} -> {}", splits, self.rule)
-    }
-}
-
-impl<'a> std::fmt::Display for CandidateList<'a> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\n");
-
-        for c in self.0 {
-            writeln!(f, "{}", c)?;
-        }
-
-        Ok(())
-    }
-}
 
 pub(crate) struct Splitter {
     pub logger: Logger,
@@ -99,7 +66,7 @@ impl Splitter {
 
                 for sp in custom_iter {
                     if let Some(candidates) = rule.apply(self, &left, &right, sp) {
-                        tracef!(
+                        debugf!(
                             &self.logger,
                             "Rule '{}' applied to {morpheme}",
                             &rule.data().name
@@ -117,7 +84,7 @@ impl Splitter {
             }
         }
 
-        tracef!(
+        debugf!(
             self.logger,
             "Generate candidates, {morpheme} => {}",
             CandidateList(&results)

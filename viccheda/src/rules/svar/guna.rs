@@ -1,6 +1,9 @@
 use crate::{
-    rules::{BaseRule, Rule, RuleData, RuleGroup, RuleUtils},
-    split::{Candidate, Splitter},
+    rules::{
+        rule::{BaseRule, RuleData, RuleGroup},
+        Rule,
+    },
+    split::Splitter,
 };
 use orthography::{
     Adjuncts, Akshara, AsChar, AsStr, Consonant, IndependentVowel, SoundClass, Vowel,
@@ -179,12 +182,6 @@ impl SvarGuna {
         ]
     }
 
-    // FIXME: This currently will not work, cuase the appearence of
-    // (अर्) is at the end of the morpheme, which gets skipped cuase
-    // it's a single grapheme.
-    //
-    // NOTE: In order to fix this, we'll have to split the last token
-    // on chars, and not grapheme
     fn ar_to_a_ar() -> Vec<Box<dyn Rule>> {
         vec![
             Box::new(BaseRule(RuleData {

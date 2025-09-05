@@ -1,6 +1,9 @@
 use crate::{
-    rules::{BaseRule, Rule, RuleData, RuleGroup, RuleUtils},
-    split::{Candidate, Splitter},
+    rules::{
+        rule::{BaseRule, RuleData, RuleGroup},
+        Rule,
+    },
+    split::Splitter,
 };
 use orthography::{
     Adjuncts, Akshara, AsChar, AsStr, Consonant, IndependentVowel, SoundClass, Vowel,

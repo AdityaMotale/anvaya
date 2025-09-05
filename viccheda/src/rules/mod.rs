@@ -1,244 +1,104 @@
-use crate::split::{Candidate, Splitter};
+pub mod rule;
+mod svar;
+
+use crate::rules::rule::{Rule, RuleGroup};
 use logger::{debugf, errorf, tracef, Logger};
 use orthography::{Akshara, AsChar, AsStr};
 use unicode_normalization::UnicodeNormalization;
 use unicode_segmentation::UnicodeSegmentation;
 
-mod svar;
-
 pub(crate) fn get_all_rules() -> Vec<Box<dyn Rule>> {
     let mut all_rules = Vec::new();
 
+    // svar rules
     all_rules.extend(svar::dirgha::SvarDirgha::rules());
     all_rules.extend(svar::guna::SvarGuna::rules());
     all_rules.extend(svar::vriddhi::SvarVriddhi::rules());
+    all_rules.extend(svar::yan::SvarYan::rules());
 
     all_rules
 }
 
-pub(crate) trait Rule: Send + Sync {
-    fn data(&self) -> &RuleData;
+// trim input sound from right with the [Akshara], returns `None`
+// if [Akshara] does not matches w/ input sound
+pub(crate) fn trim_sound_with_akshara(
+    sound: &str,
+    akshara: &Akshara,
+    logger: &Logger,
+) -> Option<String> {
+    // sanity check
+    assert!(akshara.0.len() != 0);
 
-    fn apply(
-        &self,
-        splitter: &Splitter,
-        left: &str,
-        right: &str,
-        sp: Option<&(Akshara, bool)>,
-    ) -> Option<Vec<Candidate>>;
-}
-
-#[derive(Debug, Clone)]
-pub(crate) struct RuleData {
-    pub name: &'static str,
-    pub desc: &'static str,
-    pub tag: &'static str,
-    pub left: Akshara,
-    pub right: Akshara,
-    pub merged: Akshara,
-    pub special_sequence: Option<Vec<(Akshara, bool)>>,
-}
-
-impl std::fmt::Display for RuleData {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} [{}]: {}", self.name, self.tag, self.desc)
-    }
-}
-
-pub(crate) trait RuleGroup {
-    fn rules() -> Vec<Box<dyn Rule>>;
-}
-
-struct BaseRule(pub RuleData);
-
-impl Rule for BaseRule {
-    #[inline]
-    fn data(&self) -> &RuleData {
-        &self.0
+    // fast fail for invalid input
+    if sound.is_empty() {
+        return None;
     }
 
-    fn apply(
-        &self,
-        splitter: &Splitter,
-        left: &str,
-        right: &str,
-        sp: Option<&(Akshara, bool)>,
-    ) -> Option<Vec<Candidate>> {
-        let mut out = Vec::new();
-        let rule_data = self.data();
+    tracef!(
+        logger,
+        "----\n[Sound Trim] matching sound=`{}` with akshara {}",
+        sound,
+        akshara
+    );
 
-        // a kind of priority list for possibel merges
-        let mut merge_candidates: Vec<Akshara> = Vec::with_capacity(2);
+    // in the loop we consume suffixes/last-chars (bytes) from right -> left,
+    // this way we get our trimmed sound
+    let mut tail = sound.to_string();
 
-        // first merge_candidate
-        if let Some((aksh, _)) = sp {
-            let mut combined_vec = rule_data.merged.0.clone();
-            combined_vec.extend(aksh.0.clone());
+    // we iter w/ reverse sequence cause we are matching from right -> left,
+    // or end -> start
+    for soundclass in akshara.0.iter().rev() {
+        if tail.is_empty() {
+            tracef!(
+                logger,
+                "[Sound Trim] (ERROR) tail empty but still have {} to match",
+                soundclass.as_char()
+            );
 
-            let special_merged = Akshara(combined_vec);
-
-            if special_merged != rule_data.merged {
-                merge_candidates.push(special_merged);
-            }
-        }
-
-        // second merge_candidate
-        merge_candidates.push(rule_data.merged.clone());
-
-        let left_base_opt = merge_candidates
-            .iter()
-            .find_map(|sound| RuleUtils::trim_sound_with_akshara(&left, &sound, &splitter.logger));
-
-        let left_base = match left_base_opt {
-            Some(b) => b,
-            None => return None,
-        };
-
-        let right_candidate = match rule_data.right.as_str() {
-            Some(s) => {
-                if let Some((aksh, to_add)) = sp {
-                    if *to_add && aksh.as_str().is_some() {
-                        format!("{s}{}{right}", aksh.as_str().unwrap())
-                    } else {
-                        format!("{s}{right}")
-                    }
-                } else {
-                    format!("{s}{right}")
-                }
-            }
-            None => right.to_string(),
-        };
-
-        // first candidate (left + right_candidate)
-        out.push(Candidate::new(
-            vec![left.to_string(), right_candidate.clone()],
-            rule_data.clone(),
-        ));
-
-        // second candidate (left_trimmed + right_candidate),
-        let left_candidate = match rule_data.left.as_str() {
-            Some(s) => format!("{left_base}{s}"),
-            None => left_base.clone(),
-        };
-
-        if !left_candidate.is_empty() {
-            out.push(Candidate::new(
-                vec![left_candidate, right_candidate.clone()],
-                rule_data.clone(),
-            ));
-        }
-
-        // now we recursively generate candidates for the right side
-        if let Some(candidates) = splitter.candidates(right) {
-            for candi in candidates {
-                if candi.splits.len() > 1 {
-                    let first_combined = match &rule_data.left.as_str() {
-                        Some(s) => format!("{s}{}", candi.splits[0]),
-                        None => candi.splits[0].clone(),
-                    };
-
-                    let mut cand: Candidate = Candidate::new(
-                        Vec::with_capacity(1 + candi.splits.len()),
-                        rule_data.clone(),
-                    );
-
-                    cand.splits.push(left_base.clone());
-                    cand.splits.push(first_combined);
-                    cand.splits.extend(candi.splits.clone().into_iter().skip(1));
-
-                    out.push(cand);
-                }
-            }
-        }
-
-        Some(out)
-    }
-}
-
-pub(crate) struct RuleUtils;
-
-impl RuleUtils {
-    // trim input sound from right with the [Akshara], returns `None`
-    // if [Akshara] does not matches w/ input sound
-    pub fn trim_sound_with_akshara(
-        sound: &str,
-        akshara: &Akshara,
-        logger: &Logger,
-    ) -> Option<String> {
-        // sanity check
-        assert!(akshara.0.len() != 0);
-
-        // fast fail for invalid input
-        if sound.is_empty() {
             return None;
         }
 
-        tracef!(
-            logger,
-            "----\n[Sound Trim] matching sound=`{}` with akshara {}",
-            sound,
-            akshara
-        );
+        if let Some(expected_str) = soundclass.as_str() {
+            if tail.ends_with(expected_str) {
+                let new_len = tail.len() - expected_str.len();
+                tail.truncate(new_len);
 
-        // in the loop we consume suffixes/last-chars (bytes) from right -> left,
-        // this way we get our trimmed sound
-        let mut tail = sound.to_string();
-
-        // we iter w/ reverse sequence cause we are matching from right -> left,
-        // or end -> start
-        for soundclass in akshara.0.iter().rev() {
-            if tail.is_empty() {
                 tracef!(
                     logger,
-                    "[Sound Trim] (ERROR) tail empty but still have {} to match",
-                    soundclass.as_char()
+                    "[Sound Trim] (MATCH) `{}` for {} ;; new tail=`{}`",
+                    expected_str,
+                    soundclass.as_char(),
+                    tail
                 );
 
-                return None;
-            }
-
-            if let Some(expected_str) = soundclass.as_str() {
-                if tail.ends_with(expected_str) {
-                    let new_len = tail.len() - expected_str.len();
-                    tail.truncate(new_len);
-
-                    tracef!(
-                        logger,
-                        "[Sound Trim] (MATCH) `{}` for {} ;; new tail=`{}`",
-                        expected_str,
-                        soundclass.as_char(),
-                        tail
-                    );
-
-                    continue;
-                } else {
-                    tracef!(
-                        logger,
-                        "[Sound Trim] (SKIP) tail `{}` does not end with `{}` for {}",
-                        tail,
-                        expected_str,
-                        soundclass.as_char(),
-                    );
-
-                    return None;
-                }
+                continue;
             } else {
-                // NOTE: Except [Vowel::A], all sound class have string representation (as_str)
-                // And [Vowel::A] must never be used in merged sequence, cause we never split on
-                // single [Vowel::A] or [IndependentVowel::A]. So, we're mostly safe here ;)
-
-                errorf!(
+                tracef!(
                     logger,
-                    "[Sound Trim] {akshara} contains empty string sequence {}",
+                    "[Sound Trim] (SKIP) tail `{}` does not end with `{}` for {}",
+                    tail,
+                    expected_str,
                     soundclass.as_char(),
                 );
 
                 return None;
             }
-        }
+        } else {
+            // NOTE: Except [Vowel::A], all sound class have string representation (as_str)
+            // And [Vowel::A] must never be used in merged sequence, cause we never split on
+            // single [Vowel::A] or [IndependentVowel::A]. So, we're mostly safe here ;)
 
-        Some(tail)
+            errorf!(
+                logger,
+                "[Sound Trim] {akshara} contains empty string sequence {}",
+                soundclass.as_char(),
+            );
+
+            return None;
+        }
     }
+
+    Some(tail)
 }
 
 #[cfg(test)]
@@ -249,7 +109,7 @@ mod tests {
     use orthography::{AsStr, SoundClass};
 
     #[test]
-    fn test_trim_sound_with_sequence() {
+    fn test_trim_sound_with_akshara() {
         let log_cell = init_logger("RuleUtils (Test)");
         let logger = log_cell.get().expect("Custom Logger for test");
 
@@ -275,7 +135,7 @@ mod tests {
         ];
 
         for (out, inp, aksh, desc) in candidates {
-            let sound = RuleUtils::trim_sound_with_akshara(inp, &aksh, logger);
+            let sound = trim_sound_with_akshara(inp, &aksh, logger);
 
             assert_eq!(Some(out), sound, "Failed for {}", desc);
         }
