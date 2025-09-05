@@ -21,51 +21,47 @@ impl Splitter {
         }
     }
 
-    fn nfc<S: AsRef<str>>(s: S) -> String {
-        s.as_ref().nfc().collect()
+    fn nfc(input: &str) -> String {
+        input.nfc().collect()
     }
 
-    pub fn candidates(&self, input: &str) -> Option<Vec<Candidate>> {
-        let morpheme = Self::nfc(input);
+    pub fn generate_candidates(&self, input: &str) -> Vec<Candidate> {
         let mut results: Vec<Candidate> = Vec::new();
         let mut seen: HashSet<String> = HashSet::new();
 
-        let chars: Vec<char> = morpheme.chars().collect();
+        let morpheme = Self::nfc(input);
+        let charset: Vec<char> = morpheme.chars().collect();
 
         debugf!(
             self.logger,
-            "{morpheme} => \n{:?}\n{:?}",
+            "\n{morpheme} => {:?}",
             PrettyVec(
-                morpheme
-                    .graphemes(true)
+                charset
+                    .iter()
                     .map(|c| c.to_string())
                     .collect::<Vec<String>>()
             ),
-            PrettyVec(chars.iter().map(|c| c.to_string()).collect::<Vec<String>>()),
         );
 
-        // sanity check
-        if chars.len() < 2 {
-            return None;
+        // sanity check (returns empty vec)
+        if charset.len() < 2 {
+            return results;
         }
 
-        let mut seen: HashSet<String> = HashSet::new();
-
-        for i in 1..chars.len() {
-            let left: String = chars[..i].iter().collect();
-            let right: String = chars[i..].iter().collect();
+        for i in 1..charset.len() {
+            let left: String = charset[..i].iter().collect();
+            let right: String = charset[i..].iter().collect();
 
             for rule in &self.rules {
-                let special_sequence = &rule.data().special_sequence;
-
+                // iterator for special cases
                 let custom_iter: Box<dyn Iterator<Item = Option<&(Akshara, bool)>>> =
-                    match special_sequence {
+                    match &rule.data().special_sequence {
                         Some(seq) => Box::new(seq.iter().map(Some)),
                         None => Box::new(std::iter::once(None)),
                     };
 
-                for sp in custom_iter {
-                    if let Some(candidates) = rule.apply(self, &left, &right, sp) {
+                for special_seq in custom_iter {
+                    if let Some(candidates) = rule.apply(&left, &right, &self.logger, special_seq) {
                         debugf!(
                             &self.logger,
                             "Rule '{}' applied to {morpheme}",
@@ -84,13 +80,7 @@ impl Splitter {
             }
         }
 
-        debugf!(
-            self.logger,
-            "Generate candidates, {morpheme} => {}",
-            CandidateList(&results)
-        );
-
-        Some(results)
+        results
     }
 }
 
@@ -101,12 +91,7 @@ pub(crate) fn test_sandhi_cases(cases: Vec<(&str, Vec<Vec<&str>>)>, debug: bool)
     let splitter = Splitter::new(debug);
 
     for (morpheme, expected_list) in cases {
-        let candidates = match splitter.candidates(morpheme) {
-            Some(c) => c,
-            None => {
-                panic!("split returned None for morpheme '{}'", morpheme);
-            }
-        };
+        let candidates = splitter.generate_candidates(morpheme);
 
         // normalized keys for contains-check
         let cand_keys: Vec<String> = candidates
