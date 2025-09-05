@@ -1,6 +1,6 @@
 use crate::{
     rules::{
-        rule::{BaseRule, RuleData, RuleGroup},
+        rule::{AllKindRule, BaseRule, RuleData, RuleGroup},
         Rule,
     },
     split::Splitter,
@@ -24,30 +24,36 @@ impl RuleGroup for SvarYan {
 impl SvarYan {
     fn yae_to_e_vowels() -> Vec<Box<dyn Rule>> {
         vec![
-            Box::new(BaseRule(RuleData {
-                name: "savarṇa-guṇa-yae1",
-                desc: "य् = इ + Vowel",
-                tag: "6.1.77",
-                left: Akshara(vec![SoundClass::Vowel(Vowel::I)]),
-                right: Akshara(vec![SoundClass::AllVowel]),
-                merged: Akshara(vec![
-                    SoundClass::Consonant(Consonant::Ya),
-                    SoundClass::Adjuncts(Adjuncts::VIRAMA),
-                ]),
-                special_sequence: None,
-            })),
-            Box::new(BaseRule(RuleData {
-                name: "savarṇa-guṇa-yae2",
-                desc: "य् = ई + Vowel",
-                tag: "6.1.77",
-                left: Akshara(vec![SoundClass::Vowel(Vowel::II)]),
-                right: Akshara(vec![SoundClass::AllVowel]),
-                merged: Akshara(vec![
-                    SoundClass::Consonant(Consonant::Ya),
-                    SoundClass::Adjuncts(Adjuncts::VIRAMA),
-                ]),
-                special_sequence: None,
-            })),
+            Box::new(AllKindRule {
+                kind: SoundClass::AllVowel,
+                data: RuleData {
+                    name: "savarṇa-yaṇ-yae1",
+                    desc: "य् = इ + Vowel",
+                    tag: "6.1.77",
+                    left: Akshara(vec![SoundClass::Vowel(Vowel::I)]),
+                    right: Akshara(vec![]),
+                    merged: Akshara(vec![
+                        SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                        SoundClass::Consonant(Consonant::Ya),
+                    ]),
+                    special_sequence: None,
+                },
+            }),
+            Box::new(AllKindRule {
+                kind: SoundClass::AllVowel,
+                data: RuleData {
+                    name: "savarṇa-yaṇ-yae2",
+                    desc: "य् = ई + Vowel",
+                    tag: "6.1.77",
+                    left: Akshara(vec![SoundClass::Vowel(Vowel::II)]),
+                    right: Akshara(vec![]),
+                    merged: Akshara(vec![
+                        SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                        SoundClass::Consonant(Consonant::Ya),
+                    ]),
+                    special_sequence: None,
+                },
+            }),
         ]
     }
 }

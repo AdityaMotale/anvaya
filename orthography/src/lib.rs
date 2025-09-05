@@ -116,8 +116,8 @@ impl AsChar for Vowel {
 
 impl AsIter for Vowel {
     #[inline]
-    fn as_iter() -> impl Iterator<Item = Self> {
-        Self::iter()
+    fn as_iter() -> impl Iterator<Item = Vowel> {
+        Vowel::iter()
     }
 }
 
@@ -519,6 +519,8 @@ pub enum SoundClass {
     IndependentVowel(IndependentVowel),
     Consonant(Consonant),
     Adjuncts(Adjuncts),
+    AllVowel,
+    AllConsonant,
 }
 
 impl AsStr for SoundClass {
@@ -529,6 +531,7 @@ impl AsStr for SoundClass {
             SoundClass::IndependentVowel(v) => v.as_str(),
             SoundClass::Consonant(c) => c.as_str(),
             SoundClass::Adjuncts(a) => a.as_str(),
+            _ => None,
         }
     }
 }
@@ -541,6 +544,7 @@ impl AsChar for SoundClass {
             SoundClass::IndependentVowel(v) => v.as_char(),
             SoundClass::Consonant(c) => c.as_char(),
             SoundClass::Adjuncts(a) => a.as_char(),
+            _ => unimplemented!(),
         }
     }
 }
