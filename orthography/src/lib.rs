@@ -1,4 +1,4 @@
-#[cfg(test)]
+use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
 pub trait AsStr {
@@ -9,8 +9,11 @@ pub trait AsChar {
     fn as_char(&self) -> char;
 }
 
-#[cfg_attr(test, derive(EnumIter))]
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub trait AsIter {
+    fn as_iter() -> impl Iterator<Item = Self>;
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq, EnumIter)]
 pub enum Adjuncts {
     ANUSVARA,
     VISARGA,
@@ -39,19 +42,23 @@ impl AsChar for Adjuncts {
     }
 }
 
+impl AsIter for Adjuncts {
+    #[inline]
+    fn as_iter() -> impl Iterator<Item = Self> {
+        Self::iter()
+    }
+}
+
 #[test]
 fn adjuncts_as_char_matches_as_str() {
-    use strum::IntoEnumIterator;
-
-    for a in Adjuncts::iter() {
+    for a in Adjuncts::as_iter() {
         if let Some(s) = a.as_str() {
             assert_eq!(a.as_char(), s.chars().next().unwrap());
         }
     }
 }
 
-#[cfg_attr(test, derive(EnumIter))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumIter)]
 pub enum Vowel {
     A,
     AA,
@@ -107,6 +114,13 @@ impl AsChar for Vowel {
     }
 }
 
+impl AsIter for Vowel {
+    #[inline]
+    fn as_iter() -> impl Iterator<Item = Self> {
+        Self::iter()
+    }
+}
+
 impl Vowel {
     #[inline]
     pub const fn to_independent(&self) -> IndependentVowel {
@@ -129,17 +143,14 @@ impl Vowel {
 
 #[test]
 fn vowels_as_char_matches_as_str() {
-    use strum::IntoEnumIterator;
-
-    for v in Vowel::iter() {
+    for v in Vowel::as_iter() {
         if let Some(s) = v.as_str() {
             assert_eq!(v.as_char(), s.chars().next().unwrap());
         }
     }
 }
 
-#[cfg_attr(test, derive(EnumIter))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumIter)]
 pub enum IndependentVowel {
     A,
     AA,
@@ -201,6 +212,13 @@ impl AsChar for IndependentVowel {
     }
 }
 
+impl AsIter for IndependentVowel {
+    #[inline]
+    fn as_iter() -> impl Iterator<Item = Self> {
+        Self::iter()
+    }
+}
+
 impl IndependentVowel {
     #[inline]
     pub const fn to_vowel(&self) -> Option<Vowel> {
@@ -225,9 +243,7 @@ impl IndependentVowel {
 
 #[test]
 fn indep_vowels_as_char_matches_as_str() {
-    use strum::IntoEnumIterator;
-
-    for v in IndependentVowel::iter() {
+    for v in IndependentVowel::as_iter() {
         if let Some(s) = v.as_str() {
             assert_eq!(v.as_char(), s.chars().next().unwrap());
         }
@@ -236,17 +252,13 @@ fn indep_vowels_as_char_matches_as_str() {
 
 #[test]
 fn vowel_indep_roundtrip() {
-    use strum::IntoEnumIterator;
-
-    for v in Vowel::iter() {
+    for v in Vowel::as_iter() {
         let indep = v.to_independent();
-
         assert_eq!(indep.to_vowel().unwrap(), v);
     }
 }
 
-#[cfg_attr(test, derive(EnumIter))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumIter)]
 pub enum Consonant {
     // Gutturals (velars)
     Ka,
@@ -406,25 +418,26 @@ impl AsChar for Consonant {
     }
 }
 
+impl AsIter for Consonant {
+    #[inline]
+    fn as_iter() -> impl Iterator<Item = Self> {
+        Self::iter()
+    }
+}
+
 #[test]
 fn consonant_as_char_matches_as_str() {
-    use strum::IntoEnumIterator;
-
-    for c in Consonant::iter() {
+    for c in Consonant::as_iter() {
         let s = c.as_str().expect("consonants must have as_str");
-
         assert_eq!(c.as_char(), s.chars().next().unwrap());
     }
 }
 
 #[test]
 fn no_duplicate_consonant_chars() {
-    use std::collections::HashSet;
-    use strum::IntoEnumIterator;
+    let mut seen = std::collections::HashSet::new();
 
-    let mut seen = HashSet::new();
-
-    for c in Consonant::iter() {
+    for c in Consonant::as_iter() {
         assert!(seen.insert(c.as_char()), "Duplicate char: {:?}", c);
     }
 }
@@ -477,8 +490,6 @@ pub const LABIALS: [Consonant; 5] = [
 
 #[test]
 fn all_chars_in_devanagari_block() {
-    use strum::IntoEnumIterator;
-
     fn check(c: char) {
         let cp = c as u32;
 
@@ -502,7 +513,7 @@ fn all_chars_in_devanagari_block() {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum SoundClass {
     Vowel(Vowel),
     IndependentVowel(IndependentVowel),
