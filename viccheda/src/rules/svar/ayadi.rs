@@ -12,7 +12,7 @@ impl RuleGroup for SvarAyadi {
 
         rls.extend(Self::ayae_to_e_vowels());
         rls.extend(Self::aayae_to_ai_vowels());
-        rls.extend(Self::aavae_to_o_vowels());
+        rls.extend(Self::avae_to_o_vowels());
         rls.extend(Self::aavae_to_au_vowels());
 
         rls
@@ -62,7 +62,7 @@ impl SvarAyadi {
         })]
     }
 
-    fn aavae_to_o_vowels() -> Vec<Box<dyn Rule>> {
+    fn avae_to_o_vowels() -> Vec<Box<dyn Rule>> {
         vec![Box::new(AllKindRule {
             kind: SoundClass::AllVowel,
             data: RuleData {
@@ -107,7 +107,7 @@ mod tests {
     use crate::split::test_sandhi_cases;
 
     fn create_logger() {
-        let _ = crate::init_logger("SvarGuna Rules (Test)");
+        let _ = crate::init_logger("SvarAyadi Rules (Test)");
     }
 
     #[test]
@@ -161,14 +161,14 @@ mod tests {
     }
 
     #[test]
-    fn aavae_to_o_vowel_test_debug() {
+    fn avae_to_o_vowel_test_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("विष्णवे", vec![vec!["विष्णो", "ए"]])];
         test_sandhi_cases(cases, true);
     }
 
     #[test]
-    fn aavae_to_o_vowel_test() {
+    fn avae_to_o_vowel_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("विष्णवे", vec![vec!["विष्णो", "ए"]]),
             ("गवे", vec![vec!["गो", "ए"]]),

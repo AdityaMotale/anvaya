@@ -2,7 +2,7 @@ pub mod rule;
 mod svar;
 
 use crate::rules::rule::{Candidate, Rule, RuleData, RuleGroup};
-use logger::{Logger, debugf, errorf, tracef};
+use logger::{errorf, tracef, Logger};
 use orthography::{
     Adjuncts, Akshara, AsChar, AsIter, AsStr, Consonant, IndependentVowel, SpecialAkshara,
 };
@@ -18,6 +18,7 @@ pub(crate) fn get_all_rules() -> Vec<Box<dyn Rule>> {
     all_rules.extend(svar::vriddhi::SvarVriddhi::rules());
     all_rules.extend(svar::yan::SvarYan::rules());
     all_rules.extend(svar::ayadi::SvarAyadi::rules());
+    all_rules.extend(svar::poorvaroop::SvarPoorvaroop::rules());
 
     all_rules
 }
