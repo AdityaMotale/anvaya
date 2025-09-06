@@ -18,6 +18,7 @@ impl RuleGroup for SvarYan {
         rls.extend(Self::yae_to_e_vowels());
         rls.extend(Self::vae_to_u_vowels());
         rls.extend(Self::rae_to_r_vowels());
+        rls.extend(Self::lae_to_lr_vowels());
 
         rls
     }
@@ -145,6 +146,27 @@ impl SvarYan {
                 },
             }),
         ]
+    }
+
+    fn lae_to_lr_vowels() -> Vec<Box<dyn Rule>> {
+        vec![Box::new(AllKindRule {
+            kind: SoundClass::AllVowel,
+            data: RuleData {
+                name: "savarṇa-yaṇ-lae1",
+                desc: "ल् = लृ + Vowel",
+                tag: "6.1.77",
+                left: Akshara(vec![
+                    SoundClass::Consonant(Consonant::La),
+                    SoundClass::Vowel(Vowel::R),
+                ]),
+                right: Akshara(vec![]),
+                merged: Akshara(vec![SoundClass::Consonant(Consonant::La)]),
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
+            },
+        })]
     }
 }
 
@@ -327,7 +349,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn lae_to_lr_vowel_test_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("लाकृतः", vec![vec!["लृ", "आकृतः"]])];
@@ -335,7 +356,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn lae_to_lr_vowel_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("लाकृतः", vec![vec!["लृ", "आकृतः"]]),
