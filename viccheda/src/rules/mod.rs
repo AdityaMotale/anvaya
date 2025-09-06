@@ -19,6 +19,7 @@ pub(crate) fn get_all_rules() -> Vec<Box<dyn Rule>> {
     all_rules.extend(svar::yan::SvarYan::rules());
     all_rules.extend(svar::ayadi::SvarAyadi::rules());
     all_rules.extend(svar::poorvaroop::SvarPoorvaroop::rules());
+    all_rules.extend(svar::pararupam::SvarPararupam::rules());
 
     all_rules
 }
