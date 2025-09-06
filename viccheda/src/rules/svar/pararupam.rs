@@ -11,6 +11,7 @@ impl RuleGroup for SvarPararupam {
         let mut rls = Vec::new();
 
         rls.extend(Self::e_to_a_e());
+        rls.extend(Self::au_to_a_au());
 
         rls
     }
@@ -25,6 +26,18 @@ impl SvarPararupam {
             left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
             right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::E)]),
             merged: Akshara(vec![SoundClass::Vowel(Vowel::E)]),
+            special_sequence: None,
+        }))]
+    }
+
+    fn au_to_a_au() -> Vec<Box<dyn Rule>> {
+        vec![Box::new(BaseRule(RuleData {
+            name: "savarṇa-pararūpam-au1",
+            desc: "ओ  = अ + ओ ",
+            tag: "6.1.94",
+            left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+            right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::O)]),
+            merged: Akshara(vec![SoundClass::Vowel(Vowel::O)]),
             special_sequence: None,
         }))]
     }
@@ -54,6 +67,24 @@ mod tests {
             ("उपेजते", vec![vec!["उप", "एजते"]]),
             ("उपेषते", vec![vec!["उप", "एषते"]]),
             ("प्रेषणीयम्", vec![vec!["प्र", "एषणीयम्"]]),
+        ];
+
+        test_sandhi_cases(cases, false);
+    }
+
+    #[test]
+    fn au_to_a_au_test_debug() {
+        create_logger();
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("प्रोषति", vec![vec!["प्र", "ओषति"]])];
+        test_sandhi_cases(cases, true);
+    }
+
+    #[test]
+    fn au_to_a_au_test() {
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
+            ("प्रोषति", vec![vec!["प्र", "ओषति"]]),
+            ("उपोषति", vec![vec!["उप", "ओषति"]]),
+            ("अवोषति", vec![vec!["अव", "ओषति"]]),
         ];
 
         test_sandhi_cases(cases, false);
