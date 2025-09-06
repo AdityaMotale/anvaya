@@ -33,7 +33,10 @@ impl SvarVriddhi {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::E)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::AI)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-vṛddhi-ai2",
@@ -42,7 +45,10 @@ impl SvarVriddhi {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AI)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::AI)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-vṛddhi-ai3",
@@ -51,7 +57,10 @@ impl SvarVriddhi {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::E)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::AI)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-vṛddhi-ai4",
@@ -60,7 +69,10 @@ impl SvarVriddhi {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AI)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::AI)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
         ]
     }
@@ -74,7 +86,10 @@ impl SvarVriddhi {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AU)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::AU)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-vṛddhi-au2",
@@ -83,7 +98,10 @@ impl SvarVriddhi {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::O)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::AU)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-vṛddhi-au3",
@@ -92,7 +110,10 @@ impl SvarVriddhi {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::O)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::AU)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-vṛddhi-au4",
@@ -101,7 +122,10 @@ impl SvarVriddhi {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AU)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::AU)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
         ]
     }
@@ -119,7 +143,10 @@ impl SvarVriddhi {
                     SoundClass::Consonant(Consonant::Ra),
                     SoundClass::Adjuncts(Adjuncts::VIRAMA),
                 ]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-vṛddhi-ar2",
@@ -132,7 +159,10 @@ impl SvarVriddhi {
                     SoundClass::Consonant(Consonant::Ra),
                     SoundClass::Adjuncts(Adjuncts::VIRAMA),
                 ]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
         ]
     }

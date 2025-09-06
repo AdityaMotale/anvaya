@@ -1,13 +1,8 @@
-use crate::{
-    rules::{
-        rule::{BaseRule, RuleData, RuleGroup},
-        Rule,
-    },
-    split::Splitter,
+use crate::rules::{
+    rule::{BaseRule, RuleData, RuleGroup},
+    Rule,
 };
-use orthography::{
-    Adjuncts, Akshara, AsChar, AsStr, Consonant, IndependentVowel, SoundClass, Vowel,
-};
+use orthography::{Adjuncts, Akshara, Consonant, IndependentVowel, SoundClass, Vowel};
 
 pub(crate) struct SvarGuna;
 
@@ -35,7 +30,10 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::I)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::E)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-e2",
@@ -44,7 +42,10 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::II)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::E)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-e3",
@@ -53,7 +54,10 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::I)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::E)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-e4",
@@ -62,7 +66,10 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::II)]),
                 merged: Akshara(vec![SoundClass::Vowel(Vowel::E)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
         ]
     }
@@ -141,7 +148,10 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::U)]),
                 merged: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::O)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-O2",
@@ -150,7 +160,10 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::A)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::UU)]),
                 merged: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::O)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-O3",
@@ -159,7 +172,10 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::U)]),
                 merged: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::O)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-O4",
@@ -168,7 +184,10 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::U)]),
                 merged: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::O)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-O5",
@@ -177,7 +196,10 @@ impl SvarGuna {
                 left: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::AA)]),
                 right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::UU)]),
                 merged: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::O)]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
         ]
     }
@@ -194,7 +216,10 @@ impl SvarGuna {
                     SoundClass::Consonant(Consonant::Ra),
                     SoundClass::Adjuncts(Adjuncts::VIRAMA),
                 ]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-ar2",
@@ -206,7 +231,10 @@ impl SvarGuna {
                     SoundClass::Consonant(Consonant::Ra),
                     SoundClass::Adjuncts(Adjuncts::VIRAMA),
                 ]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
         ]
     }
@@ -226,7 +254,10 @@ impl SvarGuna {
                     SoundClass::Consonant(Consonant::La),
                     SoundClass::Adjuncts(Adjuncts::VIRAMA),
                 ]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
             Box::new(BaseRule(RuleData {
                 name: "savarṇa-guṇa-al2",
@@ -241,7 +272,10 @@ impl SvarGuna {
                     SoundClass::Consonant(Consonant::La),
                     SoundClass::Adjuncts(Adjuncts::VIRAMA),
                 ]),
-                special_sequence: None,
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             })),
         ]
     }
