@@ -13,6 +13,7 @@ impl RuleGroup for SvarAyadi {
         rls.extend(Self::ayae_to_e_vowels());
         rls.extend(Self::aayae_to_ai_vowels());
         rls.extend(Self::aavae_to_o_vowels());
+        rls.extend(Self::aavae_to_au_vowels());
 
         rls
     }
@@ -71,6 +72,27 @@ impl SvarAyadi {
                 left: Akshara(vec![SoundClass::Vowel(Vowel::O)]),
                 right: Akshara(vec![]),
                 merged: Akshara(vec![SoundClass::Consonant(Consonant::Va)]),
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
+            },
+        })]
+    }
+
+    fn aavae_to_au_vowels() -> Vec<Box<dyn Rule>> {
+        vec![Box::new(AllKindRule {
+            kind: SoundClass::AllVowel,
+            data: RuleData {
+                name: "savarṇa-ayādi-aavae1",
+                desc: "आव् = औ  + Vowel",
+                tag: "6.1.78",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::AU)]),
+                right: Akshara(vec![]),
+                merged: Akshara(vec![
+                    SoundClass::Vowel(Vowel::AA),
+                    SoundClass::Consonant(Consonant::Va),
+                ]),
                 special_sequence: Some(vec![(
                     Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
                     true,
@@ -157,6 +179,33 @@ mod tests {
             ("हवनम्", vec![vec!["हो", "अनम्"]]),
             ("लवनः", vec![vec!["लो", "अनः"]]),
             ("भानवे", vec![vec!["भानो", "ए"]]),
+        ];
+
+        test_sandhi_cases(cases, false);
+    }
+
+    #[test]
+    fn aavae_to_au_vowel_test_debug() {
+        create_logger();
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("भावुकः", vec![vec!["भौ", "उकः"]])];
+        test_sandhi_cases(cases, true);
+    }
+
+    #[test]
+    fn aavae_to_au_vowel_test() {
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
+            ("भावुकः", vec![vec!["भौ", "उकः"]]),
+            ("पावुकः", vec![vec!["पौ", "उकः"]]),
+            ("पावकः", vec![vec!["पौ", "अकः"]]),
+            ("पावनः", vec![vec!["पौ", "अनः"]]),
+            ("शावकः", vec![vec!["शौ", "अकः"]]),
+            ("नाविकः", vec![vec!["नौ", "एकः"]]),
+            ("नराववदताम्", vec![vec!["नरौ", "अवदताम्"]]),
+            ("असावयम्", vec![vec!["असौ", "अयम्"]]),
+            ("अग्नाविह", vec![vec!["अग्नौ", "इह"]]),
+            ("भावयति", vec![vec!["भौ", "अयति"]]),
+            ("इन्दावुदिते", vec![vec!["इन्दौ", "उदिते"]]),
+            ("भावना", vec![vec!["भौ", "अना"]]),
         ];
 
         test_sandhi_cases(cases, false);
