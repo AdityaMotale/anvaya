@@ -16,6 +16,7 @@ impl RuleGroup for SvarYan {
         let mut rls = Vec::new();
 
         rls.extend(Self::yae_to_e_vowels());
+        rls.extend(Self::vae_to_u_vowels());
 
         rls
     }
@@ -53,6 +54,47 @@ impl SvarYan {
                     merged: Akshara(vec![
                         SoundClass::Adjuncts(Adjuncts::VIRAMA),
                         SoundClass::Consonant(Consonant::Ya),
+                    ]),
+                    special_sequence: Some(vec![(
+                        Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                        true,
+                    )]),
+                },
+            }),
+        ]
+    }
+
+    fn vae_to_u_vowels() -> Vec<Box<dyn Rule>> {
+        vec![
+            Box::new(AllKindRule {
+                kind: SoundClass::AllVowel,
+                data: RuleData {
+                    name: "savarṇa-yaṇ-vae1",
+                    desc: "व् = उ + Vowel",
+                    tag: "6.1.77",
+                    left: Akshara(vec![SoundClass::Vowel(Vowel::U)]),
+                    right: Akshara(vec![]),
+                    merged: Akshara(vec![
+                        SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                        SoundClass::Consonant(Consonant::Va),
+                    ]),
+                    special_sequence: Some(vec![(
+                        Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                        true,
+                    )]),
+                },
+            }),
+            Box::new(AllKindRule {
+                kind: SoundClass::AllVowel,
+                data: RuleData {
+                    name: "savarṇa-yaṇ-vae2",
+                    desc: "व् = ऊ  + Vowel",
+                    tag: "6.1.77",
+                    left: Akshara(vec![SoundClass::Vowel(Vowel::UU)]),
+                    right: Akshara(vec![]),
+                    merged: Akshara(vec![
+                        SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                        SoundClass::Consonant(Consonant::Va),
                     ]),
                     special_sequence: Some(vec![(
                         Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
@@ -159,6 +201,53 @@ mod tests {
             ("प्रत्याशी", vec![vec!["प्रति", "आशी"]]),
             ("स्त्र्युपयोगी", vec![vec!["स्त्री", "उपयोगी"]]),
             ("भात्यम्बरे", vec![vec!["भाति", "अम्बरे"]]),
+        ];
+
+        test_sandhi_cases(cases, false);
+    }
+
+    #[test]
+    fn vae_to_u_vowel_test_debug() {
+        create_logger();
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("स्वागतम्", vec![vec!["सु", "आगतम्"]])];
+        test_sandhi_cases(cases, true);
+    }
+
+    #[test]
+    fn vae_to_u_vowel_test() {
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
+            ("स्वागतम्", vec![vec!["सु", "आगतम्"]]),
+            ("स्वल्पम्", vec![vec!["सु", "अल्पम्"]]),
+            ("परमाण्वस्त्रम्", vec![vec!["परमाणु", "अस्त्रम्"]]),
+            ("पर्याप्तम्", vec![vec!["परि", "आप्तम्"]]),
+            ("गोप्यर्थम्", vec![vec!["गोपी", "अर्थम्"]]),
+            ("सख्यैश्वर्यम्", vec![vec!["सखी", "ऐश्वर्यम्"]]),
+            ("न्यूनम्", vec![vec!["नि", "ऊनम्"]]),
+            ("वध्वागमनम्", vec![vec!["वधू", "आगमनम्"]]),
+            ("प्रत्येकम्", vec![vec!["प्रति", "एकम्"]]),
+            ("अत्यन्तम्", vec![vec!["अति", "अन्तम्"]]),
+            ("इत्यवदत्", vec![vec!["इति", "अवदत्"]]),
+            ("वध्वलंकारः", vec![vec!["वधु", "अलंकारः"]]),
+            ("नद्यावेगः", vec![vec!["नदी", "आवेगः"]]),
+            ("वध्वागमः", vec![vec!["वधू", "आगमः"]]),
+            ("वध्वादेशः", vec![vec!["वधू", "आदेशः"]]),
+            ("अन्वयः", vec![vec!["अनु", "अयः"]]),
+            ("अन्वेषकः", vec![vec!["अनु", "एषकः"]]),
+            ("अन्वेक्षकः", vec![vec!["अनु", "एक्षकः"]]),
+            ("अन्वीक्षणः", vec![vec!["अनु", "ईक्षणः"]]),
+            ("मध्वाचार्यः", vec![vec!["मधु", "आचार्यः"]]),
+            ("साध्वाचारः", vec![vec!["साधु", "आचारः"]]),
+            ("मध्वरिः", vec![vec!["मधु", "अरिः"]]),
+            ("गुर्वादेशः", vec![vec!["गुरु", "आदेशः"]]),
+            ("साध्विति", vec![vec!["साधु", "इति"]]),
+            ("स्वस्ति", vec![vec!["सु", "अस्ति"]]),
+            ("अन्विति", vec![vec!["अनु", "इति"]]),
+            ("अन्वागच्छति", vec![vec!["अनु", "आगच्छति"]]),
+            ("अन्वीक्षा", vec![vec!["अनु", "ईक्षा"]]),
+            ("गुर्वाज्ञा", vec![vec!["गुरु", "आज्ञा"]]),
+            ("तन्वंगी", vec![vec!["तनु", "अंगी"]]),
+            ("तन्वी", vec![vec!["तनु", "ई"]]),
+            ("नद्यूर्मी", vec![vec!["नदी", "ऊर्मी"]]),
         ];
 
         test_sandhi_cases(cases, false);
