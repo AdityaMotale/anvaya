@@ -579,3 +579,5 @@ impl Akshara {
         Some(out)
     }
 }
+
+pub type SpecialAkshara = (Akshara, bool);
