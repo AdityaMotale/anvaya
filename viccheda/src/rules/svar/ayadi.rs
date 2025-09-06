@@ -11,6 +11,7 @@ impl RuleGroup for SvarAyadi {
         let mut rls = Vec::new();
 
         rls.extend(Self::ayae_to_e_vowels());
+        rls.extend(Self::aayae_to_ai_vowels());
 
         rls
     }
@@ -34,6 +35,27 @@ impl SvarAyadi {
                         true,
                     ),
                 ]),
+            },
+        })]
+    }
+
+    fn aayae_to_ai_vowels() -> Vec<Box<dyn Rule>> {
+        vec![Box::new(AllKindRule {
+            kind: SoundClass::AllVowel,
+            data: RuleData {
+                name: "savarṇa-ayādi-aayae1",
+                desc: "आय् = ऐ + Vowel",
+                tag: "6.1.78",
+                left: Akshara(vec![SoundClass::Vowel(Vowel::AI)]),
+                right: Akshara(vec![]),
+                merged: Akshara(vec![
+                    SoundClass::Vowel(Vowel::AA),
+                    SoundClass::Consonant(Consonant::Ya),
+                ]),
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
             },
         })]
     }
@@ -69,6 +91,29 @@ mod tests {
             ("मुनये", vec![vec!["मुने", "ए"]]),
             ("हरये", vec![vec!["हरे", "ए"]]),
             ("शयितः", vec![vec!["शे", "इतः"]]),
+        ];
+
+        test_sandhi_cases(cases, false);
+    }
+
+    #[test]
+    fn aayae_to_e_vowel_test_debug() {
+        create_logger();
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("गायकः", vec![vec!["गै", "अकः"]])];
+        test_sandhi_cases(cases, true);
+    }
+
+    #[test]
+    fn aayae_to_e_vowel_test() {
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
+            ("गायकः", vec![vec!["गै", "अकः"]]),
+            ("नायकः", vec![vec!["नै", "अकः"]]),
+            ("सायकः", vec![vec!["सै", "अकः"]]),
+            ("विनायकः", vec![vec!["विनै", "अकः"]]),
+            ("विधायकः", vec![vec!["विधै", "अकः"]]),
+            ("दायकः", vec![vec!["दै", "अकः"]]),
+            ("गायन्ति", vec![vec!["गै", "अन्ति"]]),
+            ("गायनम्", vec![vec!["गै", "अनम्"]]),
         ];
 
         test_sandhi_cases(cases, false);
