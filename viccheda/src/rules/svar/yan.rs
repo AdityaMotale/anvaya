@@ -17,6 +17,7 @@ impl RuleGroup for SvarYan {
 
         rls.extend(Self::yae_to_e_vowels());
         rls.extend(Self::vae_to_u_vowels());
+        rls.extend(Self::rae_to_r_vowels());
 
         rls
     }
@@ -95,6 +96,47 @@ impl SvarYan {
                     merged: Akshara(vec![
                         SoundClass::Adjuncts(Adjuncts::VIRAMA),
                         SoundClass::Consonant(Consonant::Va),
+                    ]),
+                    special_sequence: Some(vec![(
+                        Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                        true,
+                    )]),
+                },
+            }),
+        ]
+    }
+
+    fn rae_to_r_vowels() -> Vec<Box<dyn Rule>> {
+        vec![
+            Box::new(AllKindRule {
+                kind: SoundClass::AllVowel,
+                data: RuleData {
+                    name: "savarṇa-yaṇ-rae1",
+                    desc: "र् = ऋ  + Vowel",
+                    tag: "6.1.77",
+                    left: Akshara(vec![SoundClass::Vowel(Vowel::R)]),
+                    right: Akshara(vec![]),
+                    merged: Akshara(vec![
+                        SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                        SoundClass::Consonant(Consonant::Ra),
+                    ]),
+                    special_sequence: Some(vec![(
+                        Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                        true,
+                    )]),
+                },
+            }),
+            Box::new(AllKindRule {
+                kind: SoundClass::AllVowel,
+                data: RuleData {
+                    name: "savarṇa-yaṇ-rae2",
+                    desc: "र् = ॠ  + Vowel",
+                    tag: "6.1.77",
+                    left: Akshara(vec![SoundClass::Vowel(Vowel::RR)]),
+                    right: Akshara(vec![]),
+                    merged: Akshara(vec![
+                        SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                        SoundClass::Consonant(Consonant::Ra),
                     ]),
                     special_sequence: Some(vec![(
                         Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
@@ -248,6 +290,62 @@ mod tests {
             ("तन्वंगी", vec![vec!["तनु", "अंगी"]]),
             ("तन्वी", vec![vec!["तनु", "ई"]]),
             ("नद्यूर्मी", vec![vec!["नदी", "ऊर्मी"]]),
+        ];
+
+        test_sandhi_cases(cases, false);
+    }
+
+    #[test]
+    fn rae_to_r_vowel_test_debug() {
+        create_logger();
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("पित्राज्ञा", vec![vec!["पितृ", "आज्ञा"]])];
+        test_sandhi_cases(cases, true);
+    }
+
+    #[test]
+    fn rae_to_r_vowel_test() {
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
+            ("पित्राज्ञा", vec![vec!["पितृ", "आज्ञा"]]),
+            ("पित्राकृतिः", vec![vec!["पितृ", "आकृतिः"]]),
+            ("पित्रिच्छा", vec![vec!["पितृ", "इच्छा"]]),
+            ("पित्रे", vec![vec!["पितृ", "ए"]]),
+            ("पित्रधीनम्", vec![vec!["पितृ", "अधीनम्"]]),
+            ("भ्रात्रुत्तम्", vec![vec!["भ्रातृ", "उत्तम्"]]),
+            ("भ्रात्रुपदेशः", vec![vec!["भ्रातृ", "उपदेशः"]]),
+            ("भात्रादेशः", vec![vec!["भातृ", "आदेशः"]]),
+            ("मात्राज्ञा", vec![vec!["मातृ", "आज्ञा"]]),
+            ("मात्रादेशः", vec![vec!["मातृ", "आदेशः"]]),
+            ("मात्रनुमतिः", vec![vec!["मातृ", "अनुमतिः"]]),
+            ("मात्रुत्सवः", vec![vec!["मातृ", "उत्सवः"]]),
+            ("न्रात्मजः", vec![vec!["नृ", "आत्मजः"]]),
+            ("धात्रंशः", vec![vec!["धातृ", "अंशः"]]),
+            ("धात्रेतत्", vec![vec!["धातृ", "एतत्"]]),
+            ("सवित्रुदयः", vec![vec!["सवितृ", "उदयः"]]),
+        ];
+
+        test_sandhi_cases(cases, false);
+    }
+
+    #[test]
+    #[ignore]
+    fn lae_to_lr_vowel_test_debug() {
+        create_logger();
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("लाकृतः", vec![vec!["लृ", "आकृतः"]])];
+        test_sandhi_cases(cases, true);
+    }
+
+    #[test]
+    #[ignore]
+    fn lae_to_lr_vowel_test() {
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
+            ("लाकृतः", vec![vec!["लृ", "आकृतः"]]),
+            ("लाकृतिः", vec![vec!["लृ", "आकृतिः"]]),
+            ("लनुबन्धः", vec![vec!["लृ", "अनुबन्धः"]]),
+            ("लाकारः", vec![vec!["लृ", "आकारः"]]),
+            ("लादेशः", vec![vec!["लृ", "आदेशः"]]),
+            ("लङ्गः", vec![vec!["लृ", "अङ्गः"]]),
+            ("घस्लादेशः", vec![vec!["घस्लृ", "आदेशः"]]),
+            ("गम्लादेशः", vec![vec!["गम्लृ", "आदेशः"]]),
         ];
 
         test_sandhi_cases(cases, false);
