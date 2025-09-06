@@ -2,7 +2,7 @@ use crate::rules::{
     get_all_rules,
     rule::{Candidate, CandidateList, Rule},
 };
-use logger::{debugf, Logger, PrettyVec};
+use logger::{Logger, PrettyVec, debugf};
 use orthography::Akshara;
 use std::collections::HashSet;
 use unicode_normalization::UnicodeNormalization;
@@ -141,12 +141,12 @@ pub(crate) fn test_sandhi_cases(cases: Vec<(&str, Vec<Vec<&str>>)>, debug: bool)
                 }
 
                 panic!(
-                        "morpheme '{}' missing expected split [{}]\nExpected key: '{}'\nActual candidates (normalized):\n{}\n",
-                        morpheme,
-                        expected.join(", "),
-                        expected_key,
-                        debug,
-                    );
+                    "morpheme '{}' missing expected split [{}]\nExpected key: '{}'\nActual candidates (normalized):\n{}\n",
+                    morpheme,
+                    expected.join(", "),
+                    expected_key,
+                    debug,
+                );
             }
         }
     }

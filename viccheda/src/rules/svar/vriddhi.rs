@@ -1,7 +1,7 @@
 use crate::{
     rules::{
-        rule::{BaseRule, RuleData, RuleGroup},
         Rule,
+        rule::{BaseRule, RuleData, RuleGroup},
     },
     split::Splitter,
 };

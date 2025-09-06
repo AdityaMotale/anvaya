@@ -1,13 +1,8 @@
-use crate::{
-    rules::{
-        rule::{AllKindRule, BaseRule, RuleData, RuleGroup},
-        Rule,
-    },
-    split::Splitter,
+use crate::rules::{
+    Rule,
+    rule::{AllKindRule, RuleData, RuleGroup},
 };
-use orthography::{
-    Adjuncts, Akshara, AsChar, AsStr, Consonant, IndependentVowel, SoundClass, Vowel,
-};
+use orthography::{Adjuncts, Akshara, Consonant, SoundClass, Vowel};
 
 pub(crate) struct SvarYan;
 
@@ -15,7 +10,7 @@ impl RuleGroup for SvarYan {
     fn rules() -> Vec<Box<dyn Rule>> {
         let mut rls = Vec::new();
 
-        rls.extend(Self::yae_to_e_vowels());
+        rls.extend(Self::yae_to_i_vowels());
         rls.extend(Self::vae_to_u_vowels());
         rls.extend(Self::rae_to_r_vowels());
         rls.extend(Self::lae_to_lr_vowels());
@@ -25,7 +20,7 @@ impl RuleGroup for SvarYan {
 }
 
 impl SvarYan {
-    fn yae_to_e_vowels() -> Vec<Box<dyn Rule>> {
+    fn yae_to_i_vowels() -> Vec<Box<dyn Rule>> {
         vec![
             Box::new(AllKindRule {
                 kind: SoundClass::AllVowel,
@@ -179,14 +174,14 @@ mod tests {
     }
 
     #[test]
-    fn yae_to_e_vowel_test_debug() {
+    fn yae_to_i_vowel_test_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("सुध्युपास्यः", vec![vec!["सुधी", "उपास्यः"]])];
         test_sandhi_cases(cases, true);
     }
 
     #[test]
-    fn yae_to_e_vowel_special_seq_test() {
+    fn yae_to_i_vowel_special_seq_test() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("व्यंग्यः", vec![vec!["वि", "अंग्यः"]]),
@@ -196,7 +191,7 @@ mod tests {
     }
 
     #[test]
-    fn yae_to_e_vowel_test() {
+    fn yae_to_i_vowel_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("सुध्युपास्यः", vec![vec!["सुधी", "उपास्यः"]]),
             ("पर्यवेक्षकः", vec![vec!["परि", "अवेक्षकः"]]),

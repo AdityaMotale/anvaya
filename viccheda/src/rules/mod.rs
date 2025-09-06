@@ -2,8 +2,10 @@ pub mod rule;
 mod svar;
 
 use crate::rules::rule::{Candidate, Rule, RuleData, RuleGroup};
-use logger::{debugf, errorf, tracef, Logger};
-use orthography::{Akshara, AsChar, AsIter, AsStr, Consonant, IndependentVowel, SpecialAkshara};
+use logger::{Logger, debugf, errorf, tracef};
+use orthography::{
+    Adjuncts, Akshara, AsChar, AsIter, AsStr, Consonant, IndependentVowel, SpecialAkshara,
+};
 use unicode_normalization::UnicodeNormalization;
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -15,6 +17,7 @@ pub(crate) fn get_all_rules() -> Vec<Box<dyn Rule>> {
     all_rules.extend(svar::guna::SvarGuna::rules());
     all_rules.extend(svar::vriddhi::SvarVriddhi::rules());
     all_rules.extend(svar::yan::SvarYan::rules());
+    all_rules.extend(svar::ayadi::SvarAyadi::rules());
 
     all_rules
 }
@@ -119,15 +122,17 @@ impl RuleUtils {
         let mut special_merged_opt: Option<Akshara> = None;
 
         // first merge_candidate
-        if let Some((aksh, _)) = sp {
-            let mut combined_vec = rule_data.merged.0.clone();
-            combined_vec.extend(aksh.0.clone());
+        if let Some((aksh, continue_search)) = sp {
+            if !continue_search {
+                let mut combined_vec = rule_data.merged.0.clone();
+                combined_vec.extend(aksh.0.clone());
 
-            let special_merged = Akshara(combined_vec);
+                let special_merged = Akshara(combined_vec);
 
-            if special_merged != rule_data.merged {
-                special_merged_opt = Some(special_merged.clone());
-                merge_candidates.push(special_merged);
+                if special_merged != rule_data.merged {
+                    special_merged_opt = Some(special_merged.clone());
+                    merge_candidates.push(special_merged);
+                }
             }
         }
 
@@ -165,9 +170,11 @@ impl RuleUtils {
         right: &str,
         add_sp: bool,
     ) -> String {
-        if add_sp && let Some((aksh, to_add)) = sp {
-            if *to_add && aksh.as_str().is_some() {
-                return format!("{left}{}{right}", aksh.as_str().unwrap());
+        if add_sp {
+            if let Some((aksh, to_add)) = sp {
+                if *to_add && aksh.as_str().is_some() {
+                    return format!("{left}{}{right}", aksh.as_str().unwrap());
+                }
             }
         }
 
@@ -179,6 +186,7 @@ impl RuleUtils {
 
         let mut valid_chars: Vec<char> = IndependentVowel::as_iter().map(|v| v.as_char()).collect();
         valid_chars.extend(Consonant::as_iter().map(|c| c.as_char()));
+        valid_chars.extend(Adjuncts::as_iter().map(|c| c.as_char()));
 
         let mut index = 0usize;
 
