@@ -52,6 +52,7 @@ fn generic_apply(
 ) -> Option<Candidate> {
     // a kind of priority list for possibel merges
     let mut merge_candidates: Vec<Akshara> = Vec::with_capacity(2);
+    let mut special_merged_opt: Option<Akshara> = None;
 
     // first merge_candidate
     if let Some((aksh, _)) = sp {
@@ -61,6 +62,7 @@ fn generic_apply(
         let special_merged = Akshara(combined_vec);
 
         if special_merged != rule_data.merged {
+            special_merged_opt = Some(special_merged.clone());
             merge_candidates.push(special_merged);
         }
     }
@@ -68,9 +70,22 @@ fn generic_apply(
     // second merge_candidate
     merge_candidates.push(rule_data.merged.clone());
 
-    let left_base_opt = merge_candidates
-        .iter()
-        .find_map(|sound| trim_sound_with_akshara(&left, &sound, logger));
+    let mut left_base_opt: Option<String> = None;
+    let mut special_removed = false;
+
+    for sound in &merge_candidates {
+        if let Some(base) = trim_sound_with_akshara(&left, sound, logger) {
+            left_base_opt = Some(base);
+
+            if let Some(ref spec) = special_merged_opt {
+                if sound == spec {
+                    special_removed = true;
+                }
+            }
+
+            break;
+        }
+    }
 
     let left_base = match left_base_opt {
         Some(b) => b,
@@ -85,7 +100,7 @@ fn generic_apply(
     let right_candidate = match rule_data.right.as_str() {
         Some(s) => {
             if let Some((aksh, to_add)) = sp {
-                if *to_add && aksh.as_str().is_some() {
+                if *to_add && aksh.as_str().is_some() && special_removed {
                     format!("{s}{}{right}", aksh.as_str().unwrap())
                 } else {
                     format!("{s}{right}")
@@ -177,6 +192,7 @@ impl Rule for AllKindRule {
 
         // a kind of priority list for possibel merges
         let mut merge_candidates: Vec<Akshara> = Vec::with_capacity(2);
+        let mut special_merged_opt: Option<Akshara> = None;
 
         // first merge_candidate
         if let Some((aksh, _)) = sp {
@@ -186,6 +202,7 @@ impl Rule for AllKindRule {
             let special_merged = Akshara(combined_vec);
 
             if special_merged != self.data.merged {
+                special_merged_opt = Some(special_merged.clone());
                 merge_candidates.push(special_merged);
             }
         }
@@ -193,9 +210,22 @@ impl Rule for AllKindRule {
         // second merge_candidate
         merge_candidates.push(self.data.merged.clone());
 
-        let left_base_opt = merge_candidates
-            .iter()
-            .find_map(|sound| trim_sound_with_akshara(&left, &sound, logger));
+        let mut left_base_opt: Option<String> = None;
+        let mut special_removed = false;
+
+        for sound in &merge_candidates {
+            if let Some(base) = trim_sound_with_akshara(&left, sound, logger) {
+                left_base_opt = Some(base);
+
+                if let Some(ref spec) = special_merged_opt {
+                    if sound == spec {
+                        special_removed = true;
+                    }
+                }
+
+                break;
+            }
+        }
 
         let left_base = match left_base_opt {
             Some(b) => b,
@@ -211,8 +241,15 @@ impl Rule for AllKindRule {
             if let Some(right_candi) = rc {
                 let trimmed_right = trim_sound_from_left(right);
 
-                debugf!(Logger::new(true, "Trimmer"), "RIGHT => {trimmed_right}");
-                let right_candidate = format!("{right_candi}{trimmed_right}");
+                let right_candidate = if let Some((aksh, to_add)) = sp {
+                    if *to_add && aksh.as_str().is_some() && special_removed {
+                        format!("{right_candi}{}{trimmed_right}", aksh.as_str().unwrap())
+                    } else {
+                        format!("{right_candi}{trimmed_right}")
+                    }
+                } else {
+                    format!("{right_candi}{trimmed_right}")
+                };
 
                 candidates.push(Candidate::new(
                     vec![left_candidate.clone(), right_candidate],

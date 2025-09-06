@@ -36,7 +36,10 @@ impl SvarYan {
                         SoundClass::Adjuncts(Adjuncts::VIRAMA),
                         SoundClass::Consonant(Consonant::Ya),
                     ]),
-                    special_sequence: None,
+                    special_sequence: Some(vec![(
+                        Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                        true,
+                    )]),
                 },
             }),
             Box::new(AllKindRule {
@@ -51,7 +54,10 @@ impl SvarYan {
                         SoundClass::Adjuncts(Adjuncts::VIRAMA),
                         SoundClass::Consonant(Consonant::Ya),
                     ]),
-                    special_sequence: None,
+                    special_sequence: Some(vec![(
+                        Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                        true,
+                    )]),
                 },
             }),
         ]
@@ -70,6 +76,16 @@ mod tests {
     fn yae_to_e_vowel_test_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("सुध्युपास्यः", vec![vec!["सुधी", "उपास्यः"]])];
+        test_sandhi_cases(cases, true);
+    }
+
+    #[test]
+    fn yae_to_e_vowel_special_seq_test() {
+        create_logger();
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
+            ("व्यंग्यः", vec![vec!["वि", "अंग्यः"]]),
+            ("व्यंजनम्", vec![vec!["वि", "अंजनम्"]]),
+        ];
         test_sandhi_cases(cases, true);
     }
 
@@ -95,7 +111,6 @@ mod tests {
             ("अभ्यासः", vec![vec!["अभि", "आसः"]]),
             ("नद्यादयः", vec![vec!["नदी", "आदयः"]]),
             ("व्यस्तः", vec![vec!["वि", "अस्तः"]]),
-            // ("व्यंग्यः", vec![vec!["वि", "अंग्यः"]]),
             ("व्ययः", vec![vec!["वि", "अयः"]]),
             ("व्याप्तः", vec![vec!["वि", "आप्तः"]]),
             ("व्यासः", vec![vec!["वि", "आसः"]]),
@@ -128,7 +143,6 @@ mod tests {
             ("वाण्यौचित्यम्", vec![vec!["वाणी", "औचित्यम्"]]),
             ("व्यग्रम्", vec![vec!["वि", "अग्रम्"]]),
             ("व्यवहारम्", vec![vec!["वि", "अवहारम्"]]),
-            // ("व्यंजनम्", vec![vec!["वि", "अंजनम्"]]),
             ("व्याख्यानम्", vec![vec!["वि", "आख्यानम्"]]),
             ("प्रत्येकम्", vec![vec!["प्रति", "एकम्"]]),
             ("प्रत्युत्तरम्", vec![vec!["प्रति", "उत्तरम्"]]),
