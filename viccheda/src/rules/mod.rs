@@ -25,6 +25,7 @@ pub(crate) fn get_all_rules() -> Vec<Box<dyn Rule>> {
     // visarga rules
     all_rules.extend(visarg::satva::VisargSatva::rules());
     all_rules.extend(visarg::shatva::VisargShatva::rules());
+    all_rules.extend(visarg::rutva::VisargRutva::rules());
 
     all_rules
 }
