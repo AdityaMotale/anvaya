@@ -111,7 +111,7 @@ mod tests {
     use crate::split::test_sandhi_cases;
 
     fn create_logger() {
-        let _ = crate::init_logger("SvarPoorvaroop Rules (Test)");
+        let _ = crate::init_logger("VisargSatva Rules (Test)");
     }
 
     #[test]
