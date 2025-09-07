@@ -1,5 +1,6 @@
 pub mod rule;
 mod svar;
+mod visarg;
 
 use crate::rules::rule::{Candidate, Rule, RuleData, RuleGroup};
 use logger::{errorf, tracef, Logger};
@@ -20,6 +21,9 @@ pub(crate) fn get_all_rules() -> Vec<Box<dyn Rule>> {
     all_rules.extend(svar::ayadi::SvarAyadi::rules());
     all_rules.extend(svar::poorvaroop::SvarPoorvaroop::rules());
     all_rules.extend(svar::pararupam::SvarPararupam::rules());
+
+    // visarga rules
+    all_rules.extend(visarg::satva::VisargSatva::rules());
 
     all_rules
 }
