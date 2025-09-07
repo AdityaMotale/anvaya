@@ -48,7 +48,7 @@ impl Splitter {
             return results;
         }
 
-        for i in 1..charset.len() {
+        for i in 1..=charset.len() {
             let left: String = charset[..i].iter().collect();
             let right: String = charset[i..].iter().collect();
 
