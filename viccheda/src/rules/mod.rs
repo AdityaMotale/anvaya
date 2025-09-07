@@ -1,6 +1,7 @@
 pub mod rule;
 mod svar;
 mod visarg;
+mod vyanjan;
 
 use crate::rules::rule::{Candidate, Rule, RuleData, RuleGroup};
 use logger::{errorf, tracef, Logger};
@@ -26,6 +27,16 @@ pub(crate) fn get_all_rules() -> Vec<Box<dyn Rule>> {
     all_rules.extend(visarg::satva::VisargSatva::rules());
     all_rules.extend(visarg::shatva::VisargShatva::rules());
     all_rules.extend(visarg::rutva::VisargRutva::rules());
+
+    // vynjan rules
+    all_rules.extend(vyanjan::chhatva::VynjanChhatva::rules());
+    all_rules.extend(vyanjan::shchutva::VynjanShchutva::rules());
+    all_rules.extend(vyanjan::jashtva::VynjanJashtva::rules());
+    all_rules.extend(vyanjan::chatrva::VynjanChatrva::rules());
+    all_rules.extend(vyanjan::latva::VynjanLatva::rules());
+    all_rules.extend(vyanjan::paraswarn::VynjanParaswarn::rules());
+    all_rules.extend(vyanjan::anunasik::VynjanAnunasik::rules());
+    all_rules.extend(vyanjan::shtutva::VynjanShtuvta::rules());
 
     all_rules
 }
