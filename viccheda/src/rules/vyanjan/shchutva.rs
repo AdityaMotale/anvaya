@@ -1,4 +1,9 @@
-use crate::rules::{rule::RuleGroup, Rule};
+use orthography::{Adjuncts, Akshara, Consonant, SoundClass, Vowel};
+
+use crate::rules::{
+    rule::{BaseRule, RuleData, RuleGroup},
+    Rule,
+};
 
 pub(crate) struct VynjanShchutva;
 
@@ -15,8 +20,21 @@ impl RuleGroup for VynjanShchutva {
 
 impl VynjanShchutva {
     fn sh_to_s_sh() -> Vec<Box<dyn Rule>> {
-        // नियम 1 – स् + श् = श्
-        vec![]
+        vec![Box::new(BaseRule(RuleData {
+            name: "vyanjan-ṣṭutva-shae1",
+            desc: "श् = स् + अ ",
+            tag: "8.4.44",
+            left: Akshara(vec![
+                SoundClass::Consonant(Consonant::Sa),
+                SoundClass::Adjuncts(Adjuncts::VIRAMA),
+            ]),
+            right: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+            merged: Akshara(vec![
+                SoundClass::Consonant(Consonant::Sha),
+                SoundClass::Adjuncts(Adjuncts::VIRAMA),
+            ]),
+            special_sequence: None,
+        }))]
     }
 
     fn palatals_to_dentals() -> Vec<Box<dyn Rule>> {
@@ -34,18 +52,16 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn sh_to_s_sh_debug() {
         create_logger();
-        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("रामश्चिनोति", vec![vec!["रामस", "चिनोति"]])];
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("रामश्चिनोति", vec![vec!["रामस्", "चिनोति"]])];
         test_sandhi_cases(cases, true);
     }
 
     #[test]
-    #[ignore]
     fn sh_to_s_sh_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
-            ("रामश्चिनोति", vec![vec!["रामस", "चिनोति"]]),
+            ("रामश्चिनोति", vec![vec!["रामस्", "चिनोति"]]),
             ("हरिश्शेते", vec![vec!["हरिस्", "शेते"]]),
             ("बालकश्शेते", vec![vec!["बालकस्", "शेते"]]),
             ("शिशुश्शेते", vec![vec!["शिशुस्", "शेते"]]),
