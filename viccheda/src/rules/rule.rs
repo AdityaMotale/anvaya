@@ -1,5 +1,5 @@
 use crate::rules::RuleUtils;
-use logger::{Logger, PrettyVec, errorf};
+use logger::{errorf, Logger, PrettyVec};
 use orthography::{
     Akshara, AsIter, AsStr, Consonant, IndependentVowel, SoundClass, SpecialAkshara,
 };

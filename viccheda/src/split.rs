@@ -2,7 +2,7 @@ use crate::rules::{
     get_all_rules,
     rule::{Candidate, CandidateList, Rule},
 };
-use logger::{Logger, PrettyVec, debugf};
+use logger::{debugf, Logger, PrettyVec};
 use orthography::Akshara;
 use std::collections::HashSet;
 use unicode_normalization::UnicodeNormalization;

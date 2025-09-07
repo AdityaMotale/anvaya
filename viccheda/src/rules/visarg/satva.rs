@@ -11,6 +11,7 @@ impl RuleGroup for VisargSatva {
         let mut rls = Vec::new();
 
         rls.extend(Self::sae_to_vis_a());
+        rls.extend(Self::shae_to_vis_c_ch_sh());
 
         rls
     }
@@ -31,6 +32,59 @@ impl VisargSatva {
             special_sequence: None,
         }))]
     }
+
+    fn shae_to_vis_c_ch_sh() -> Vec<Box<dyn Rule>> {
+        vec![
+            Box::new(BaseRule(RuleData {
+                name: "visarga-visarjanīyasya-saḥ-shae1",
+                desc: "श् (श्च) = : + च् ",
+                tag: "8.3.37",
+                left: Akshara(vec![SoundClass::Adjuncts(Adjuncts::VISARGA)]),
+                right: Akshara(vec![SoundClass::Consonant(Consonant::Cha)]),
+                merged: Akshara(vec![
+                    SoundClass::Consonant(Consonant::Sha),
+                    SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                    SoundClass::Consonant(Consonant::Cha),
+                ]),
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "visarga-visarjanīyasya-saḥ-shae2",
+                desc: "श् (श्च) = : + छ् ",
+                tag: "8.3.37",
+                left: Akshara(vec![SoundClass::Adjuncts(Adjuncts::VISARGA)]),
+                right: Akshara(vec![SoundClass::Consonant(Consonant::Chha)]),
+                merged: Akshara(vec![
+                    SoundClass::Consonant(Consonant::Sha),
+                    SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                    SoundClass::Consonant(Consonant::Cha),
+                ]),
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
+            })),
+            Box::new(BaseRule(RuleData {
+                name: "visarga-visarjanīyasya-saḥ-shae3",
+                desc: "श् (श्च) = : + श् ",
+                tag: "8.3.37",
+                left: Akshara(vec![SoundClass::Adjuncts(Adjuncts::VISARGA)]),
+                right: Akshara(vec![SoundClass::Consonant(Consonant::Sha)]),
+                merged: Akshara(vec![
+                    SoundClass::Consonant(Consonant::Sha),
+                    SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                    SoundClass::Consonant(Consonant::Cha),
+                ]),
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    true,
+                )]),
+            })),
+        ]
+    }
 }
 
 #[cfg(test)]
@@ -42,7 +96,7 @@ mod tests {
     }
 
     #[test]
-    fn sae_to_vis_a_test_debug() {
+    fn sae_to_vis_a_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("चन्द्रस्तमः", vec![vec!["चन्द्रः", "तमः"]])];
         test_sandhi_cases(cases, true);
@@ -73,6 +127,36 @@ mod tests {
             ("धन्यास्तु", vec![vec!["धन्याः", "तु"]]),
             ("मनस्तोषः", vec![vec!["मनः", "तोषः"]]),
             ("भवतस्सर्वदा", vec![vec!["भवतः", "सर्वदा"]]),
+        ];
+
+        test_sandhi_cases(cases, false);
+    }
+
+    #[test]
+    fn shae_to_vis_c_ch_sh_debug() {
+        create_logger();
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("रामश्च", vec![vec!["रामः", "च"]])];
+        test_sandhi_cases(cases, true);
+    }
+
+    #[test]
+    fn shae_to_vis_c_ch_sh_test() {
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
+            ("निश्चलः", vec![vec!["निः", "छलः"]]),
+            ("रामश्च", vec![vec!["रामः", "च"]]),
+            ("आश्चर्यः", vec![vec!["आः", "चर्यः"]]),
+            ("दुश्चरित्रः", vec![vec!["दुः", "चरित्रः"]]),
+            ("निश्चिंतः", vec![vec!["निः", "चिंतः"]]),
+            ("दुश्शासनः", vec![vec!["दुः", "शासनः"]]),
+            ("निश्चयः", vec![vec!["निः", "चयः"]]),
+            ("अन्तश्चक्षुः", vec![vec!["अतः", "चक्षुः"]]),
+            ("दुश्चक्रः", vec![vec!["दुः", "चक्रः"]]),
+            ("हरिश्चंद्रः", vec![vec!["हरिः", "चंद्रः"]]),
+            ("पुनश्च", vec![vec!["पुनः", "च"]]),
+            ("व्याकुलश्चलितः", vec![vec!["व्याकुलः", "चलितः"]]),
+            ("जन्मभूमिश्च", vec![vec!["जन्मभूमिः", "च"]]),
+            ("मातुश्च", vec![vec!["मातुः", "च"]]),
+            ("मधुरश्च", vec![vec!["मधुरः", "च"]]),
         ];
 
         test_sandhi_cases(cases, false);
