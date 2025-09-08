@@ -1,4 +1,8 @@
-use crate::rules::{rule::RuleGroup, Rule};
+use crate::rules::{
+    rule::{BaseRule, MultiOptRule, RuleData, RuleGroup},
+    Rule,
+};
+use orthography::{Adjuncts, Akshara, Consonant, SoundClass, Vowel, DENTALS, PALATALS};
 
 pub(crate) struct VynjanShtuvta;
 
@@ -15,8 +19,21 @@ impl RuleGroup for VynjanShtuvta {
 
 impl VynjanShtuvta {
     fn ss_to_s_ss() -> Vec<Box<dyn Rule>> {
-        // नियम 1 – स् + ष् = ष्
-        vec![]
+        vec![Box::new(BaseRule(RuleData {
+            name: "vyanjan-shtutva-ss1",
+            desc: "ष् = स् + अ ",
+            tag: "8.4.44",
+            left: Akshara(vec![
+                SoundClass::Consonant(Consonant::Sa),
+                SoundClass::Adjuncts(Adjuncts::VIRAMA),
+            ]),
+            right: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+            merged: Akshara(vec![
+                SoundClass::Consonant(Consonant::Ssa),
+                SoundClass::Adjuncts(Adjuncts::VIRAMA),
+            ]),
+            special_sequence: None,
+        }))]
     }
 
     fn retroflex_to_dentals() -> Vec<Box<dyn Rule>> {
@@ -34,15 +51,13 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
-    fn ss_to_s_s_debug() {
+    fn ss_to_s_ss_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("रामष्षष्ठः", vec![vec!["रामस्", "षष्ठः"]])];
         test_sandhi_cases(cases, true);
     }
 
     #[test]
-    #[ignore]
     fn ss_to_s_ss_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("रामष्षष्ठः", vec![vec!["रामस्", "षष्ठः"]]),
