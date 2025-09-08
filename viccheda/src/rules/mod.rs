@@ -132,7 +132,7 @@ impl RuleUtils {
     // NOTE: Returns `true` if special seq is removed
     pub fn trim_left_base(
         left: &str,
-        rule_data: &RuleData,
+        merged: &Akshara,
         sp: Option<&SpecialAkshara>,
         logger: &Logger,
     ) -> Option<(String, bool)> {
@@ -143,12 +143,12 @@ impl RuleUtils {
         // first merge_candidate
         if let Some((aksh, continue_search)) = sp {
             if !continue_search {
-                let mut combined_vec = rule_data.merged.0.clone();
+                let mut combined_vec = merged.0.clone();
                 combined_vec.extend(aksh.0.clone());
 
                 let special_merged = Akshara(combined_vec);
 
-                if special_merged != rule_data.merged {
+                if &special_merged != merged {
                     special_merged_opt = Some(special_merged.clone());
                     merge_candidates.push(special_merged);
                 }
@@ -156,7 +156,7 @@ impl RuleUtils {
         }
 
         // second merge_candidate
-        merge_candidates.push(rule_data.merged.clone());
+        merge_candidates.push(merged.clone());
 
         let mut left_base_opt: Option<String> = None;
         let mut special_removed = false;
@@ -228,10 +228,11 @@ impl RuleUtils {
         sp: Option<&SpecialAkshara>,
         logger: &Logger,
     ) -> Option<Candidate> {
-        let (left_base, special_removed) = match Self::trim_left_base(left, rule_data, sp, logger) {
-            Some((lb, sr)) => (lb, sr),
-            None => return None,
-        };
+        let (left_base, special_removed) =
+            match Self::trim_left_base(left, &rule_data.merged, sp, logger) {
+                Some((lb, sr)) => (lb, sr),
+                None => return None,
+            };
 
         let left_candidate = match rule_data.left.as_str() {
             Some(s) => format!("{left_base}{s}"),

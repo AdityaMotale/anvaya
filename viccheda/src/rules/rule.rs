@@ -132,7 +132,7 @@ impl Rule for AllKindRule {
         };
 
         let (left_base, special_removed) =
-            match RuleUtils::trim_left_base(left, &self.data, sp, logger) {
+            match RuleUtils::trim_left_base(left, &self.data.merged, sp, logger) {
                 Some((lb, sr)) => (lb, sr),
                 None => return None,
             };
@@ -160,5 +160,56 @@ impl Rule for AllKindRule {
         } else {
             Some(candidates)
         }
+    }
+}
+
+pub(crate) struct MultiOptRule {
+    pub merged_list: Vec<Akshara>,
+    pub swap_list: Vec<Akshara>,
+    pub data: RuleData,
+}
+
+impl Rule for MultiOptRule {
+    fn data(&self) -> &RuleData {
+        &self.data
+    }
+
+    fn apply(
+        &self,
+        left: &str,
+        right: &str,
+        logger: &Logger,
+        sp: Option<&SpecialAkshara>,
+    ) -> Option<Vec<Candidate>> {
+        // sanity check
+        assert!(self.merged_list.len() == self.swap_list.len());
+
+        let mut candidates = Vec::new();
+
+        for (idx, (merged, left_candi)) in self.merged_list.iter().zip(&self.swap_list).enumerate()
+        {
+            let (left_base, special_removed) =
+                match RuleUtils::trim_left_base(left, merged, sp, logger) {
+                    Some((lb, sr)) => (lb, sr),
+                    None => return None,
+                };
+
+            let left_candidate = match left_candi.as_str() {
+                Some(s) => format!("{left_base}{s}"),
+                None => left_base,
+            };
+
+            let right_candidate = match self.data.right.as_str() {
+                Some(s) => RuleUtils::create_right_candi(sp, &s, right, special_removed),
+                None => right.to_string(),
+            };
+
+            candidates.push(Candidate::new(
+                vec![left_candidate, right_candidate],
+                self.data.clone(),
+            ));
+        }
+
+        Some(candidates)
     }
 }

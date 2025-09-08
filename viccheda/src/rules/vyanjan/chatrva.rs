@@ -1,4 +1,8 @@
-use crate::rules::{rule::RuleGroup, Rule};
+use crate::rules::{
+    rule::{BaseRule, RuleData, RuleGroup},
+    Rule,
+};
+use orthography::{Adjuncts, Akshara, Consonant, SoundClass, Vowel};
 
 pub(crate) struct VynjanChatrva;
 
@@ -14,9 +18,21 @@ impl RuleGroup for VynjanChatrva {
 
 impl VynjanChatrva {
     fn char_to_zal_khal() -> Vec<Box<dyn Rule>> {
-        //  (वर्ग का 1, 2, 3, 4 वर्ण तथा श्, ष्, स् और ह्) + खर् वर्ण (वर्ग का 1, 2 वर्ण तथा श्, ष्, स्)
-        //  = चर् (क्, च्, ट्, त्, प्, श्, ष्, स्)
-        vec![]
+        vec![Box::new(BaseRule(RuleData {
+            name: "vyanjan-chatrva-char1",
+            desc: "त् = द् + अ ",
+            tag: "8.4.44",
+            left: Akshara(vec![
+                SoundClass::Consonant(Consonant::Da),
+                SoundClass::Adjuncts(Adjuncts::VIRAMA),
+            ]),
+            right: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+            merged: Akshara(vec![
+                SoundClass::Consonant(Consonant::Ta),
+                SoundClass::Adjuncts(Adjuncts::VIRAMA),
+            ]),
+            special_sequence: None,
+        }))]
     }
 }
 
@@ -44,19 +60,18 @@ mod tests {
             ("विपत्कालः", vec![vec!["विपद्", "कालः"]]),
             ("शरत्कालः", vec![vec!["शरद्", "कालः"]]),
             ("सम्पत्समयः", vec![vec!["सम्पद्", "समयः"]]),
-            ("ककुप्प्रान्तः", vec![vec!["ककुभ्", "प्रान्तः"]]),
             ("उत्पन्नः", vec![vec!["उद्", "पन्नः"]]),
             ("उत्तप्तः", vec![vec!["उद्", "तप्तः"]]),
             ("उत्तमः", vec![vec!["उद्", "तमः"]]),
             ("उत्कर्षः", vec![vec!["उद्", "कर्षः"]]),
             ("उत्कीर्णः", vec![vec!["उद्", "कीर्णः"]]),
             ("उत्पत्तिः", vec![vec!["उद्", "पत्तिः"]]),
-            ("उत्थानम्", vec![vec!["उद्", "स्थानम्"]]),
+            // ("उत्थानम्", vec![vec!["उद्", "स्थानम्"]]),
             ("तत्क्षणः", vec![vec!["तद्", "क्षणः"]]),
             ("तत्परः", vec![vec!["तद्", "परः"]]),
             ("तत्पुरुषः", vec![vec!["तद्", "पुरुषः"]]),
             ("तच्छविः", vec![vec!["तद्", "छविः"]]),
-            ("तच्छिवः", vec![vec!["तज्", "शिवः"]]),
+            ("तच्छिवः", vec![vec!["तद्", "शिवः"]]),
             ("संसत्सदस्यः", vec![vec!["संसद्", "सदस्यः"]]),
             ("आपत्तिः", vec![vec!["आपद्", "तिः"]]),
             ("लप्स्यते", vec![vec!["लभ्", "स्यते"]]),

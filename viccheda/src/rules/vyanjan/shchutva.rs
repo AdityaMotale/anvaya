@@ -1,7 +1,7 @@
-use orthography::{Adjuncts, Akshara, Consonant, SoundClass, Vowel};
+use orthography::{Adjuncts, Akshara, Consonant, SoundClass, Vowel, DENTALS, PALATALS};
 
 use crate::rules::{
-    rule::{BaseRule, RuleData, RuleGroup},
+    rule::{BaseRule, MultiOptRule, RuleData, RuleGroup},
     Rule,
 };
 
@@ -38,8 +38,41 @@ impl VynjanShchutva {
     }
 
     fn palatals_to_dentals() -> Vec<Box<dyn Rule>> {
-        // नियम 2 – तवर्ग (त्, थ्, द्, ध्, न्) + चवर्ग (च्, छ्, ज, झ्, ञ्) = चवर्ग (च्, छ्, ज, झ्, ञ्)
-        vec![]
+        let merged_list: Vec<Akshara> = PALATALS
+            .iter()
+            .map(|consonant| {
+                Akshara(vec![
+                    SoundClass::Consonant(*consonant),
+                    SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                ])
+            })
+            .collect();
+
+        let swap_list: Vec<Akshara> = DENTALS
+            .iter()
+            .map(|consonant| {
+                Akshara(vec![
+                    SoundClass::Consonant(*consonant),
+                    SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                ])
+            })
+            .collect();
+
+        assert!(merged_list.len() == swap_list.len());
+
+        vec![Box::new(MultiOptRule {
+            merged_list,
+            swap_list,
+            data: RuleData {
+                name: "vyanjan-ṣṭutva-palatals1",
+                desc: "palatals = dentals + अ ",
+                tag: "8.4.44",
+                left: Akshara(vec![]),
+                right: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+                merged: Akshara(vec![]),
+                special_sequence: None,
+            },
+        })]
     }
 }
 
