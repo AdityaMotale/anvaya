@@ -1,8 +1,8 @@
 use crate::rules::{
-    rule::{BaseRule, MultiOptRule, RuleData, RuleGroup},
     Rule,
+    rule::{BaseRule, MultiOptRule, RuleData, RuleGroup},
 };
-use orthography::{Adjuncts, Akshara, Consonant, SoundClass, Vowel, DENTALS, PALATALS};
+use orthography::{Adjuncts, Akshara, Consonant, DENTALS, PALATALS, SoundClass, Vowel};
 
 pub(crate) struct VynjanShchutva;
 

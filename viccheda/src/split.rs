@@ -1,12 +1,11 @@
 use crate::rules::{
-    self, get_all_rules,
-    rule::{Candidate, CandidateList, Rule},
+    get_all_rules,
+    rule::{Candidate, Rule},
 };
 use logger::{debugf, Logger, PrettyVec};
 use orthography::Akshara;
 use std::collections::HashSet;
 use unicode_normalization::UnicodeNormalization;
-use unicode_segmentation::UnicodeSegmentation;
 
 pub(crate) struct Splitter {
     pub logger: Logger,

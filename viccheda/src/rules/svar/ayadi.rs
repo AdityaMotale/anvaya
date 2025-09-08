@@ -1,8 +1,8 @@
 use crate::rules::{
-    rule::{AllKindRule, RuleData, RuleGroup},
     Rule,
+    rule::{AllKindRule, RuleData, RuleGroup},
 };
-use orthography::{Adjuncts, Akshara, Consonant, IndependentVowel, SoundClass, Vowel};
+use orthography::{Adjuncts, Akshara, Consonant, SoundClass, Vowel};
 
 pub(crate) struct SvarAyadi;
 

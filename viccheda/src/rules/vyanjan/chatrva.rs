@@ -1,6 +1,6 @@
 use crate::rules::{
-    rule::{BaseRule, MultiOptRule, RuleData, RuleGroup},
     Rule,
+    rule::{MultiOptRule, RuleData, RuleGroup},
 };
 use orthography::{Adjuncts, Akshara, Consonant, SoundClass, Vowel};
 

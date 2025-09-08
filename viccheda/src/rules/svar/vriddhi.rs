@@ -1,12 +1,9 @@
-use crate::{
-    rules::{
+use crate::rules::{
         Rule,
         rule::{BaseRule, RuleData, RuleGroup},
-    },
-    split::Splitter,
-};
+    };
 use orthography::{
-    Adjuncts, Akshara, AsChar, AsStr, Consonant, IndependentVowel, SoundClass, Vowel,
+    Adjuncts, Akshara, Consonant, IndependentVowel, SoundClass, Vowel,
 };
 
 pub(crate) struct SvarVriddhi;

@@ -11,8 +11,6 @@ use orthography::{
     Adjuncts, Akshara, AsChar, AsIter, AsStr, Consonant, FromStr, IndependentVowel, SpecialAkshara,
     Vowel,
 };
-use unicode_normalization::UnicodeNormalization;
-use unicode_segmentation::UnicodeSegmentation;
 
 pub(crate) fn get_all_rules() -> Vec<Box<dyn Rule>> {
     let mut all_rules = Vec::new();
