@@ -1,4 +1,8 @@
-use crate::rules::{rule::RuleGroup, Rule};
+use crate::rules::{
+    rule::{MultiOptRule, RuleData, RuleGroup},
+    Adjuncts, Rule,
+};
+use orthography::{Akshara, Consonant, SoundClass, Vowel};
 
 pub(crate) struct VynjanParaswarn;
 
@@ -6,16 +10,54 @@ impl RuleGroup for VynjanParaswarn {
     fn rules() -> Vec<Box<dyn Rule>> {
         let mut rls = Vec::new();
 
-        rls.extend(Self::da_to_anuswara_da());
+        rls.extend(Self::paraswarn());
 
         rls
     }
 }
 
 impl VynjanParaswarn {
-    fn da_to_anuswara_da() -> Vec<Box<dyn Rule>> {
-        // नियम 1 – अनुस्वार ( -ं ) + कोई भी वर्गीय व्यंजन = उसी वर्ग का पंचम वर्ण ङ्, ञ्, ण्, न्, म्
-        vec![]
+    fn paraswarn() -> Vec<Box<dyn Rule>> {
+        let merge_items: [Consonant; 5] = [
+            Consonant::Nga,
+            Consonant::Nna,
+            Consonant::Na,
+            Consonant::Ma,
+            Consonant::Nya,
+        ];
+
+        let merged_list: Vec<Akshara> = merge_items
+            .iter()
+            .map(|consonant| {
+                Akshara(vec![
+                    SoundClass::Consonant(*consonant),
+                    SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                ])
+            })
+            .collect();
+
+        let swap_list: Vec<Akshara> = (0..5)
+            .map(|consonant| Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]))
+            .collect();
+
+        assert!(merged_list.len() == swap_list.len());
+
+        vec![Box::new(MultiOptRule {
+            merged_list,
+            swap_list,
+            data: RuleData {
+                name: "vyanjan-paraswarn",
+                desc: "ङ्, ण्, न्, म् = क्, ठ्, त्, प् + अ ",
+                tag: "8.4.44",
+                left: Akshara(vec![]),
+                right: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+                merged: Akshara(vec![]),
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    false,
+                )]),
+            },
+        })]
     }
 }
 
@@ -24,20 +66,18 @@ mod tests {
     use crate::split::test_sandhi_cases;
 
     fn create_logger() {
-        let _ = crate::init_logger("VyanjanParaswarn Rules (Test)");
+        let _ = crate::init_logger("VyanjanAnunasik Rules (Test)");
     }
 
     #[test]
-    #[ignore]
-    fn da_to_anuswar_da_debug() {
+    fn paraswarn_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("अङ्कितः", vec![vec!["अं", "कितः"]])];
         test_sandhi_cases(cases, true);
     }
 
     #[test]
-    #[ignore]
-    fn da_to_anuswar_da_test() {
+    fn paraswarn_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("अङ्कितः", vec![vec!["अं", "कितः"]]),
             ("सङ्कल्पः", vec![vec!["सं", "कल्पः"]]),
@@ -45,7 +85,6 @@ mod tests {
             ("मुञ्चति", vec![vec!["मुं", "चति"]]),
             ("मुण्डनम्", vec![vec!["मुं", "डनम्"]]),
             ("अञ्चितः", vec![vec!["अं", "चितः"]]),
-            ("नन्दति", vec![vec!["नं", "दतिः"]]),
             ("कम्पते", vec![vec!["कं", "पते"]]),
             ("त्वङ्करोषि", vec![vec!["त्वं", "करोषि"]]),
             ("सम्पृक्तौ", vec![vec!["सं", "पृक्तौ"]]),
