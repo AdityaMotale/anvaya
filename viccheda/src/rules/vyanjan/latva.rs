@@ -1,4 +1,8 @@
-use crate::rules::{rule::RuleGroup, Rule};
+use crate::rules::{
+    rule::{MultiOptRule, RuleData, RuleGroup},
+    Rule,
+};
+use orthography::{Adjuncts, Akshara, Consonant, SoundClass, Vowel, DENTALS};
 
 pub(crate) struct VynjanLatva;
 
@@ -15,8 +19,43 @@ impl RuleGroup for VynjanLatva {
 
 impl VynjanLatva {
     fn lae_to_dentals_lae() -> Vec<Box<dyn Rule>> {
-        // नियम 1 – तवर्ग त्, थ्, द्, ध् + ल्  = ल्
-        vec![]
+        let merged_list: Vec<Akshara> = (0..5)
+            .map(|_| {
+                Akshara(vec![
+                    SoundClass::Consonant(Consonant::La),
+                    SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                ])
+            })
+            .collect();
+
+        let swap_list: Vec<Akshara> = DENTALS
+            .iter()
+            .map(|consonant| {
+                Akshara(vec![
+                    SoundClass::Consonant(*consonant),
+                    SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                ])
+            })
+            .collect();
+
+        assert!(merged_list.len() == swap_list.len());
+
+        vec![Box::new(MultiOptRule {
+            merged_list,
+            swap_list,
+            data: RuleData {
+                name: "vyanjan-latva-lae",
+                desc: "ल् = त्, थ्, द्, ध् + ल",
+                tag: "8.4.44",
+                left: Akshara(vec![]),
+                right: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+                merged: Akshara(vec![]),
+                special_sequence: Some(vec![(
+                    Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]),
+                    false,
+                )]),
+            },
+        })]
     }
 
     fn lan_to_nae_lae() -> Vec<Box<dyn Rule>> {
@@ -34,7 +73,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn lae_to_dentals_lae_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("तल्लीनः", vec![vec!["तत्", "लीनः"]])];
@@ -42,7 +80,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn lae_to_dentals_lae_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("तल्लीनः", vec![vec!["तत्", "लीनः"]]),
