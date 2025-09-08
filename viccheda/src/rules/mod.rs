@@ -258,6 +258,19 @@ impl RuleUtils {
             }
         }
 
+        // sanitize end (remove anusvara if is at end)
+        //
+        // NOTE: In sandhi this is replaced with [Visarga],
+        // but we normalize words (remove visarga at end)
+        if let Some(last) = chrs.last() {
+            if let Some(adj) = Adjuncts::from_str(last) {
+                if adj == Adjuncts::ANUSVARA {
+                    // removes the last element
+                    chrs.pop();
+                }
+            }
+        }
+
         chrs.join("")
     }
 

@@ -1,8 +1,8 @@
 use crate::rules::{
-    Rule,
     rule::{BaseRule, MultiOptRule, RuleData, RuleGroup},
+    Rule,
 };
-use orthography::{Adjuncts, Akshara, Consonant, DENTALS, PALATALS, SoundClass, Vowel};
+use orthography::{Adjuncts, Akshara, Consonant, SoundClass, Vowel, DENTALS, PALATALS};
 
 pub(crate) struct VynjanShchutva;
 
@@ -135,8 +135,8 @@ mod tests {
             ("तच्छविः", vec![vec!["तत्", "छविः"]]),
             ("उज्ज्वलः", vec![vec!["उद्", "ज्वलः"]]),
             ("उज्जयिनी", vec![vec!["उद्", "जयिनी"]]),
-            ("सज्जनं", vec![vec!["सद्", "जनं"]]),
-            ("तज्जयं", vec![vec!["तद्", "जयं"]]),
+            ("सज्जनं", vec![vec!["सद्", "जन"]]),
+            ("तज्जयं", vec![vec!["तद्", "जय"]]),
             ("तज्जयः", vec![vec!["तद्", "जयः"]]),
             ("बृहज्जनः", vec![vec!["बृहद्", "जनः"]]),
             ("विपज्जालः", vec![vec!["विपद्", "जालः"]]),
