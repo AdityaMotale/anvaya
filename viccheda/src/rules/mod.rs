@@ -224,6 +224,11 @@ impl RuleUtils {
     }
 
     pub fn sanitize_sound(sound: &str) -> String {
+        // sanity check
+        if sound.is_empty() {
+            return String::new();
+        }
+
         let mut chrs: Vec<String> = sound.chars().map(|c| c.to_string()).collect();
         let first_char = chrs[0].clone().to_string();
 
@@ -235,6 +240,16 @@ impl RuleUtils {
 
             if let Some(iv) = IndependentVowel::from_str(ch) {
                 break;
+            }
+
+            if let Some(ad) = Adjuncts::from_str(ch) {
+                // if we found anusvara, we add Independent A
+                // otherwise we remove the Adjunct
+                if ad == Adjuncts::ANUSVARA {
+                    chrs.insert(0, IndependentVowel::A.as_char().to_string());
+                } else {
+                    chrs.remove(0);
+                }
             }
 
             // NOTE: We must only repalce vowel to indep at the start, not at

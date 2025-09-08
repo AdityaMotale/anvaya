@@ -1,5 +1,5 @@
 use crate::rules::{
-    get_all_rules,
+    self, get_all_rules,
     rule::{Candidate, CandidateList, Rule},
 };
 use logger::{debugf, Logger, PrettyVec};
@@ -15,10 +15,12 @@ pub(crate) struct Splitter {
 
 impl Splitter {
     pub fn new(debug: bool) -> Self {
-        Self {
-            rules: get_all_rules(),
-            logger: Logger::new(debug, "Viccheda::Splitter"),
-        }
+        let rules = get_all_rules();
+        let logger = Logger::new(debug, "Viccheda::Splitter");
+
+        debugf!(logger, "Init splitter w/ {} rules", rules.len());
+
+        Self { logger, rules }
     }
 
     fn nfc(input: &str) -> String {
