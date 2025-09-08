@@ -1,4 +1,8 @@
-use crate::rules::{rule::RuleGroup, Rule};
+use crate::rules::{
+    rule::{BaseRule, RuleData, RuleGroup},
+    Rule,
+};
+use orthography::{Adjuncts, Akshara, Consonant, SoundClass, Vowel};
 
 pub(crate) struct VynjanChhatva;
 
@@ -14,8 +18,22 @@ impl RuleGroup for VynjanChhatva {
 
 impl VynjanChhatva {
     fn chha_to_varna_sha() -> Vec<Box<dyn Rule>> {
-        // नियम 1 – वर्ग का  प्रथम  द्वितीय तृतीय  चतुर्थवर्ण या र् ल् व्  या  ह्श्  छ्
-        vec![]
+        vec![Box::new(BaseRule(RuleData {
+            name: "vyanjan-chhatva-chha",
+            desc: "च्छ = त् + अ ",
+            tag: "8.4.44",
+            left: Akshara(vec![
+                SoundClass::Consonant(Consonant::Ta),
+                SoundClass::Adjuncts(Adjuncts::VIRAMA),
+            ]),
+            right: Akshara(vec![SoundClass::Consonant(Consonant::Sha)]),
+            merged: Akshara(vec![
+                SoundClass::Consonant(Consonant::Cha),
+                SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                SoundClass::Consonant(Consonant::Chha),
+            ]),
+            special_sequence: None,
+        }))]
     }
 }
 
@@ -28,15 +46,13 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn chha_to_varna_sha_debug() {
         create_logger();
-        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("उच्छृंखलः", vec![vec!["उत्", "शृंखलः"]])];
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("तच्छरीरम्", vec![vec!["तत्", "शरीरम्"]])];
         test_sandhi_cases(cases, true);
     }
 
     #[test]
-    #[ignore]
     fn chha_to_varna_sha_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("उच्छृंखलः", vec![vec!["उत्", "शृंखलः"]]),
