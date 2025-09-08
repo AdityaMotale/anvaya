@@ -148,8 +148,10 @@ impl Rule for AllKindRule {
                 let right_candidate =
                     RuleUtils::create_right_candi(sp, right_candi, &trimmed_right, special_removed);
 
+                let sanitized_right = RuleUtils::sanitize_sound(&right_candidate);
+
                 candidates.push(Candidate::new(
-                    vec![left_candidate.clone(), right_candidate],
+                    vec![left_candidate.clone(), sanitized_right],
                     self.data.clone(),
                 ));
             }
@@ -204,8 +206,10 @@ impl Rule for MultiOptRule {
                 None => right.to_string(),
             };
 
+            let sanitized_right = RuleUtils::sanitize_sound(&right_candidate);
+
             candidates.push(Candidate::new(
-                vec![left_candidate, right_candidate],
+                vec![left_candidate, sanitized_right],
                 self.data.clone(),
             ));
         }

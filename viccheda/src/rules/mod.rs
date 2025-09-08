@@ -3,10 +3,13 @@ mod svar;
 mod visarg;
 mod vyanjan;
 
+use std::char;
+
 use crate::rules::rule::{Candidate, Rule, RuleData, RuleGroup};
 use logger::{errorf, tracef, Logger};
 use orthography::{
-    Adjuncts, Akshara, AsChar, AsIter, AsStr, Consonant, IndependentVowel, SpecialAkshara,
+    Adjuncts, Akshara, AsChar, AsIter, AsStr, Consonant, FromStr, IndependentVowel, SpecialAkshara,
+    Vowel,
 };
 use unicode_normalization::UnicodeNormalization;
 use unicode_segmentation::UnicodeSegmentation;
@@ -220,6 +223,31 @@ impl RuleUtils {
         chrs[index..].iter().collect()
     }
 
+    pub fn sanitize_sound(sound: &str) -> String {
+        let mut chrs: Vec<String> = sound.chars().map(|c| c.to_string()).collect();
+        let first_char = chrs[0].clone().to_string();
+
+        // sanitize start
+        for (i, ch) in chrs.clone().iter().enumerate() {
+            if let Some(c) = Consonant::from_str(ch) {
+                break;
+            }
+
+            if let Some(iv) = IndependentVowel::from_str(ch) {
+                break;
+            }
+
+            // NOTE: We must only repalce vowel to indep at the start, not at
+            // end or middle
+            if let Some(v) = Vowel::from_str(ch) {
+                let indep = v.to_independent();
+                chrs[i] = indep.as_char().to_string();
+            }
+        }
+
+        chrs.join("")
+    }
+
     /// A generic apply function for the base logic for applying rules
     pub fn generic_apply(
         rule_data: &RuleData,
@@ -244,8 +272,10 @@ impl RuleUtils {
             None => right.to_string(),
         };
 
+        let sanitized_right = Self::sanitize_sound(&right_candidate);
+
         Some(Candidate::new(
-            vec![left_candidate, right_candidate],
+            vec![left_candidate, sanitized_right],
             rule_data.to_owned(),
         ))
     }

@@ -13,6 +13,24 @@ pub trait AsIter {
     fn as_iter() -> impl Iterator<Item = Self>;
 }
 
+pub trait FromStr: Sized + AsIter + AsStr + AsChar {
+    fn from_str(inp: &str) -> Option<Self> {
+        for item in Self::as_iter() {
+            if let Some(str) = item.as_str() {
+                if str == inp {
+                    return Some(item);
+                }
+            }
+
+            if item.as_char().to_string() == inp {
+                return Some(item);
+            }
+        }
+
+        None
+    }
+}
+
 #[derive(Debug, Clone, Copy, Eq, PartialEq, EnumIter)]
 pub enum Adjuncts {
     ANUSVARA,
@@ -51,6 +69,8 @@ impl AsIter for Adjuncts {
         Self::iter()
     }
 }
+
+impl FromStr for Adjuncts {}
 
 #[test]
 fn adjuncts_as_char_matches_as_str() {
@@ -123,6 +143,8 @@ impl AsIter for Vowel {
         Vowel::iter()
     }
 }
+
+impl FromStr for Vowel {}
 
 impl Vowel {
     #[inline]
@@ -221,6 +243,8 @@ impl AsIter for IndependentVowel {
         Self::iter()
     }
 }
+
+impl FromStr for IndependentVowel {}
 
 impl IndependentVowel {
     #[inline]
@@ -427,6 +451,8 @@ impl AsIter for Consonant {
         Self::iter()
     }
 }
+
+impl FromStr for Consonant {}
 
 #[test]
 fn consonant_as_char_matches_as_str() {
