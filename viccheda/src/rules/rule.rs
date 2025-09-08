@@ -191,7 +191,7 @@ impl Rule for MultiOptRule {
             let (left_base, special_removed) =
                 match RuleUtils::trim_left_base(left, merged, sp, logger) {
                     Some((lb, sr)) => (lb, sr),
-                    None => return None,
+                    None => continue,
                 };
 
             let left_candidate = match left_candi.as_str() {
