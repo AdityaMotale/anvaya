@@ -37,6 +37,7 @@ pub enum Adjuncts {
     VISARGA,
     VIRAMA,
     AVAGRAHA,
+    CHANDRABINDU,
 }
 
 impl AsStr for Adjuncts {
@@ -47,6 +48,7 @@ impl AsStr for Adjuncts {
             Adjuncts::VISARGA => Some("ः"),
             Adjuncts::VIRAMA => Some("्"),
             Adjuncts::AVAGRAHA => Some("ऽ"),
+            Adjuncts::CHANDRABINDU => Some("ँ"),
         }
     }
 }
@@ -59,6 +61,7 @@ impl AsChar for Adjuncts {
             Adjuncts::VISARGA => '\u{0903}',
             Adjuncts::VIRAMA => '\u{094D}',
             Adjuncts::AVAGRAHA => '\u{093D}',
+            Adjuncts::CHANDRABINDU => '\u{0901}',
         }
     }
 }

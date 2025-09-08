@@ -1,5 +1,5 @@
 use crate::rules::{
-    rule::{MultiOptRule, RuleData, RuleGroup},
+    rule::{BaseRule, MultiOptRule, RuleData, RuleGroup},
     Rule,
 };
 use orthography::{Adjuncts, Akshara, Consonant, SoundClass, Vowel, DENTALS};
@@ -59,8 +59,22 @@ impl VynjanLatva {
     }
 
     fn lan_to_nae_lae() -> Vec<Box<dyn Rule>> {
-        // नियम 2 – न्  + ल्  = लँ
-        vec![]
+        vec![Box::new(BaseRule(RuleData {
+            name: "vyanjan-latva-lan",
+            desc: "लँ = न्  + ल् ",
+            tag: "8.4.44",
+            left: Akshara(vec![
+                SoundClass::Consonant(Consonant::Na),
+                SoundClass::Adjuncts(Adjuncts::VIRAMA),
+            ]),
+            right: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
+            merged: Akshara(vec![
+                SoundClass::Adjuncts(Adjuncts::CHANDRABINDU),
+                SoundClass::Consonant(Consonant::La),
+                SoundClass::Adjuncts(Adjuncts::VIRAMA),
+            ]),
+            special_sequence: None,
+        }))]
     }
 }
 
@@ -101,7 +115,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn lan_to_nae_lae_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> =
@@ -110,11 +123,10 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn lan_to_nae_lae_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             ("विद्वाँल्लिखति", vec![vec!["विद्वान्", "लिखति"]]),
-            ("गुणवाँल्लुण्ठितः", vec![vec!["गुणवान्", "लुण्ठित"]]),
+            ("गुणवाँल्लुण्ठितः", vec![vec!["गुणवान्", "लुण्ठितः"]]),
             ("धीमाँल्लिखति", vec![vec!["धीमान्", "लिखति"]]),
             ("महाँल्लाभः", vec![vec!["महान्", "लाभः"]]),
             ("हसँल्लिखति", vec![vec!["हसन्", "लिखति"]]),
