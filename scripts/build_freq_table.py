@@ -1,12 +1,16 @@
 """Build a frequency table from xls datasets."""
 
 from collections import Counter
+from pathlib import Path
 
 import pandas as pd
 
+VISARGA_LATIN = ":"
 VISARGA_UNICODE = "U+0903"
 ANUSVARA_UNICODE = "U+0902"
-VISARGA_LATIN = ":"
+VIRAMA_UNICODE = "U+094D"
+
+OUT_FILE = "freq.txt"
 
 # list of tuple (file_url, split column index (must be seperated by "+"))
 INPUT_URLS = [
@@ -47,25 +51,10 @@ def get_unicode(c: str) -> str:
 
     Raises
     ------
-    TypeError
-        If the input is not a string.
-
     ValueError
         If the input string length is not exactly one character.
 
-    Examples
-    --------
-    >>> get_unicode('A')
-    'U+0041'
-
-    >>> get_unicode('€')
-    'U+20AC'
-
     """
-    # sanity check
-    if not isinstance(c, str):
-        raise TypeError(f"Expected input type str, got {type(c).__name__!r}")
-
     if len(c) != 1:
         raise ValueError(
             f"Input string must be exactly one character long, got length {len(c)}"
@@ -88,24 +77,18 @@ def sanitize(word: str) -> str:
     str
         The sanitized word with trailing visarga or anusvara removed.
 
-    Raises
-    ------
-    TypeError
-        If the input is not a string.
-
     """
-    if not isinstance(word, str):
-        raise TypeError(f"Expected input type str, got {type(word).__name__!r}")
-
     if len(word) < 2:
         return word
 
     last = word[-1]
+    last_unicode = get_unicode(last)
 
     if (
         last == VISARGA_LATIN
-        or get_unicode(last) == VISARGA_UNICODE
-        or get_unicode(last) == ANUSVARA_UNICODE
+        or last_unicode == VISARGA_UNICODE
+        or last_unicode == ANUSVARA_UNICODE
+        or last_unicode == VIRAMA_UNICODE
     ):
         word = word[:-1]
 
@@ -128,19 +111,13 @@ def is_sanskrit_word(word: str) -> bool:
     bool
         True if all characters are in Devanagari Unicode range
 
-    Examples
-    --------
-    >>> is_sanskrit_word("राम")
-    True
-
-    >>> is_sanskrit_word("rama")
-    False
-
     """
     for char in word:
         code = ord(char)
+
         if not (0x0900 <= code <= 0x097F):
             return False
+
     return True
 
 
@@ -165,3 +142,13 @@ print(f"[DEBUG] Data sample => {SPLITS[-10:-5]}")
 freq_table = Counter(SPLITS)
 print(f"[DEBUG] Unique Words => {len(freq_table)}")
 print(f"[DEBUG] T10 in freq table => {freq_table.most_common(10)}")
+
+# write table
+out_file = Path(OUT_FILE).open(mode="w")
+
+for key, value in freq_table.items():
+    out_file.write(f"{key}, {value}\n")
+
+out_file.close()
+
+print(f"[DEBUG] Frequency table written to '{OUT_FILE}'")
