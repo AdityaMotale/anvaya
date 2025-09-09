@@ -1,11 +1,11 @@
 use crate::rules::RuleUtils;
-use logger::{Logger, PrettyVec, errorf};
+use logger::{errorf, Logger, PrettyVec};
 use orthography::{
     Akshara, AsIter, AsStr, Consonant, IndependentVowel, SoundClass, SpecialAkshara,
 };
 
-#[derive(Debug, Clone)]
-pub(crate) struct Candidate {
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct Candidate {
     pub splits: Vec<String>,
     pub rule: RuleData,
 }
@@ -58,8 +58,8 @@ pub(crate) trait Rule: Send + Sync {
     }
 }
 
-#[derive(Debug, Clone)]
-pub(crate) struct RuleData {
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct RuleData {
     pub name: &'static str,
     pub desc: &'static str,
     pub tag: &'static str,

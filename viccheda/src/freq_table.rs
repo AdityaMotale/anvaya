@@ -1,16 +1,16 @@
-include!(concat!(env!("OUT_DIR"), "/freq_map.rs"));
+include!(concat!(env!("OUT_DIR"), "/freq_table.rs"));
 
 pub(crate) struct FreqTable;
 
 impl FreqTable {
     #[inline]
     pub fn get(key: &str) -> Option<usize> {
-        FREQ_MAP.get(key).copied()
+        FREQ_TABLE.get(key).copied()
     }
 
     #[inline]
     pub fn iter() -> impl Iterator<Item = (&'static str, usize)> {
-        FREQ_MAP.entries().map(|(k, v)| (*k, *v))
+        FREQ_TABLE.entries().map(|(k, v)| (*k, *v))
     }
 }
 
