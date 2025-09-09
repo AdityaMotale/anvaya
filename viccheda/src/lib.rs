@@ -1,5 +1,6 @@
 #![allow(unused)]
 
+mod freq_table;
 mod rules;
 mod split;
 
