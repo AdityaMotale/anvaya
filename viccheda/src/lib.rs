@@ -1,5 +1,6 @@
 #![allow(unused)]
 
+mod candi_table;
 mod freq_table;
 mod rules;
 mod split;
