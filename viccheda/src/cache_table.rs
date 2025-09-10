@@ -1,17 +1,14 @@
-use orthography::Akshara;
-
 use crate::rules::rule::{Candidate, RuleData};
+use orthography::Akshara;
 
 include!(concat!(env!("OUT_DIR"), "/cache_table.rs"));
 
 pub struct CacheTable;
 
 impl CacheTable {
-    pub fn get(key: &str) -> Option<Vec<Candidate>> {
+    pub fn get(key: &str) -> Option<Candidate> {
         if let Some(res) = Self::_get(key) {
-            let mut out = Vec::new();
-
-            out.push(Candidate {
+            return Some(Candidate {
                 splits: res.iter().map(|s| s.to_string()).collect::<Vec<String>>(),
                 rule: RuleData {
                     name: "Cache",
@@ -23,8 +20,6 @@ impl CacheTable {
                     special_sequence: None,
                 },
             });
-
-            return Some(out);
         }
 
         None
