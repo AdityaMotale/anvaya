@@ -1,5 +1,7 @@
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
+use unicode_normalization::UnicodeNormalization;
+use unicode_segmentation::UnicodeSegmentation;
 
 pub trait AsStr {
     fn as_str(&self) -> Option<&'static str>;
@@ -613,3 +615,191 @@ impl Akshara {
 }
 
 pub type SpecialAkshara = (Akshara, bool);
+
+/// get the NFC form of the word
+fn to_nfc(word: &str) -> String {
+    word.nfc().collect()
+}
+
+/// get char clusters w/ unicode segmentation by grouping chrs together
+fn to_unicode_segmentation(word: &str) -> Vec<String> {
+    UnicodeSegmentation::graphemes(word, true)
+        .into_iter()
+        .map(|s| s.to_string())
+        .collect()
+}
+
+/// Returns true if the given string ends with exactly म्
+fn ends_with_standalone_ma_virama(input: &str) -> bool {
+    let segs = to_unicode_segmentation(input);
+
+    if let Some(last) = segs.last() {
+        last == "म्"
+    } else {
+        false
+    }
+}
+
+/// Sanitize a Sanskrit word to Devnagari Sanskrit
+///
+/// ## Sanitization Process,
+///
+///   ▶ Normalize chars to NFC
+///   ▶ Replace [Anusvara] w/ [Indep Vowel A + Anusvara] iff only if at start
+///   ▶ Replace [Vowel] with [Indep Vowel] if any, iff only at the start
+///   ▶ Remove any dangeling [Vowels] and [Adjuncts] from the starting sequence
+///   ▶ Remove [Visarga] or [Consonant Ma] followed by [Virama] if present at the end
+///   ▶ Build back the string w/ Unicode Segmentation
+///
+/// ## Purpose
+///
+/// The purpose of this function to get the word into
+/// its base form, and nothing else. If we do not, the word
+/// dictionary is highly inflated and are many potential
+/// representation possible for a single word. To create
+/// accurate sandhi splits and avoid dictionary enflation for
+/// the tokenizer, we just chop of the word to try to get
+/// its base form!
+pub fn sanitize(word: &str) -> String {
+    // sanity check
+    if word.is_empty() {
+        return String::new();
+    }
+
+    let input = to_nfc(word);
+    let mut chrs: Vec<String> = input.chars().map(|c| c.to_string()).collect();
+
+    // sanitize start
+    loop {
+        let ch = match chrs.first() {
+            Some(c) => &c.clone(),
+            None => break,
+        };
+
+        if let Some(_) = Consonant::from_str(ch) {
+            break;
+        }
+
+        if let Some(_) = IndependentVowel::from_str(ch) {
+            break;
+        }
+
+        if let Some(ad) = Adjuncts::from_str(ch) {
+            // if we found anusvara, we add Independent A
+            // otherwise we remove the Adjunct
+            if ad == Adjuncts::ANUSVARA {
+                chrs.insert(0, IndependentVowel::A.as_char().to_string());
+            } else {
+                chrs.remove(0);
+            }
+
+            break;
+        }
+
+        // NOTE: We must only repalce vowel to indep at the start, not at
+        // end or middle
+        //
+        // NOTE: This change is protected by above checks, which breaks
+        // the iteration if a valid character is found in the sequence
+        if let Some(v) = Vowel::from_str(ch) {
+            let indep = v.to_independent();
+            chrs[0] = indep.as_char().to_string();
+
+            break;
+        }
+    }
+
+    // sanitize end
+    //
+    // ▶ remove anusvara if is at end
+    // ▶ remove visarga if is at end
+    //
+    // NOTE: In sandhi this is replaced with [Visarga],
+    // but we normalize words (remove visarga at end)
+    if let Some(last) = chrs.last() {
+        if let Some(adj) = Adjuncts::from_str(last) {
+            match adj {
+                Adjuncts::ANUSVARA | Adjuncts::VISARGA => {
+                    chrs.pop();
+                }
+
+                // remove `म्` from the end if present
+                //
+                // NOTE: `म्` is written at the end of the word as a
+                // replacement for [Anusvara], so to get the word
+                // into the base form, we need to remove it
+                Adjuncts::VIRAMA => {
+                    if ends_with_standalone_ma_virama(&chrs.join("")) {
+                        // remove [Virama]
+                        chrs.pop();
+
+                        // remove [Consonant Ma]
+                        chrs.pop();
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+
+    to_unicode_segmentation(&chrs.join("")).join("")
+}
+
+#[cfg(test)]
+mod sanitize_tests {
+    use super::*;
+
+    /// Utility: easier to spot issues in diffs
+    fn s(input: &str, expected: &str) {
+        assert_eq!(sanitize(input), expected, "input: {}", input);
+    }
+
+    #[test]
+    fn empty_input() {
+        s("", "");
+    }
+
+    #[test]
+    fn normal_word_unchanged() {
+        s("प्रथम", "प्रथम");
+    }
+
+    #[test]
+    fn leading_indep_vowel_unchanged() {
+        s("अग्नि", "अग्नि");
+    }
+
+    #[test]
+    fn leading_dependent_vowel_promoted() {
+        // starting with ि + क should be promoted to इ + क
+        s("िक", "इक");
+    }
+
+    #[test]
+    fn leading_non_anusvara_adjunct_removed() {
+        // starting with visarga before a consonant should just be dropped
+        s("ःकर्म", "कर्म");
+    }
+
+    #[test]
+    fn trailing_anusvara_removed() {
+        s("कर्मं", "कर्म");
+    }
+
+    #[test]
+    fn trailing_visarga_removed() {
+        s("कर्मः", "कर्म");
+    }
+
+    #[test]
+    fn mid_word_anusvara_not_removed() {
+        // "संपूर्ण" should remain unchanged; anusvara only dropped at end
+        s("संपूर्ण", "संपूर्ण");
+    }
+
+    #[test]
+    fn mid_word_visarga_not_removed() {
+        // "अःपुरुषः" should keep internal visarga, drop only trailing
+        s("अःपुरुषः", "अःपुरुष");
+    }
+}

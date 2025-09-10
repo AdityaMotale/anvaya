@@ -6,3 +6,5 @@ edition = "2024"
 [dependencies]
 strum = "0.27.2"
 strum_macros = "0.27.2"
+unicode-normalization = "0.1.24"
+unicode-segmentation = "1.12.0"
