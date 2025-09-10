@@ -1,7 +1,7 @@
 use crate::rules::RuleUtils;
 use logger::{errorf, Logger, PrettyVec};
 use orthography::{
-    Akshara, AsIter, AsStr, Consonant, IndependentVowel, SoundClass, SpecialAkshara,
+    sanitize, Akshara, AsIter, AsStr, Consonant, IndependentVowel, SoundClass, SpecialAkshara,
 };
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -141,6 +141,7 @@ impl Rule for AllKindRule {
             Some(s) => format!("{left_base}{s}"),
             None => left_base,
         };
+        let sanitized_left = sanitize(&left_candidate);
 
         for rc in right_candi_list {
             if let Some(right_candi) = rc {
@@ -148,10 +149,10 @@ impl Rule for AllKindRule {
                 let right_candidate =
                     RuleUtils::create_right_candi(sp, right_candi, &trimmed_right, special_removed);
 
-                let sanitized_right = RuleUtils::sanitize_sound(&right_candidate);
+                let sanitized_right = sanitize(&right_candidate);
 
                 candidates.push(Candidate::new(
-                    vec![left_candidate.clone(), sanitized_right],
+                    vec![sanitized_left.clone(), sanitized_right],
                     self.data.clone(),
                 ));
             }
@@ -206,7 +207,8 @@ impl Rule for MultiOptRule {
                 None => right.to_string(),
             };
 
-            let sanitized_right = RuleUtils::sanitize_sound(&right_candidate);
+            let sanitized_left = sanitize(&left_candidate);
+            let sanitized_right = sanitize(&right_candidate);
 
             candidates.push(Candidate::new(
                 vec![left_candidate, sanitized_right],

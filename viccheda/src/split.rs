@@ -6,7 +6,7 @@ use crate::{
     },
 };
 use logger::{debugf, tracef, warnf, Logger, PrettyVec};
-use orthography::Akshara;
+use orthography::{sanitize, Akshara};
 use std::collections::HashSet;
 use unicode_normalization::UnicodeNormalization;
 
@@ -122,15 +122,11 @@ impl Splitter {
         best_candi
     }
 
-    pub fn nfc(input: &str) -> String {
-        input.nfc().collect()
-    }
-
     fn generate_candidates(&self, input: &str) -> Vec<Candidate> {
         let mut results: Vec<Candidate> = Vec::new();
         let mut seen: HashSet<String> = HashSet::new();
 
-        let morpheme = Self::nfc(input);
+        let morpheme = sanitize(input);
         let charset: Vec<char> = morpheme.chars().collect();
 
         debugf!(
@@ -193,30 +189,40 @@ impl Splitter {
 
 #[cfg(test)]
 pub(crate) fn test_sandhi_cases(cases: Vec<(&str, Vec<Vec<&str>>)>, debug: bool) {
-    use orthography::AsStr;
+    use orthography::{sanitize, AsStr};
 
     let splitter = Splitter::new(debug);
 
     for (morpheme, expected_list) in cases {
-        let candidates = splitter.generate_candidates(morpheme);
+        let candidates = splitter.generate_candidates(&sanitize(morpheme));
 
         // normalized keys for contains-check
         let cand_keys: Vec<String> = candidates
             .iter()
-            .map(|cand| cand.splits.join("|"))
+            .map(|cand| {
+                cand.splits
+                    .iter()
+                    .map(|c| sanitize(c))
+                    .collect::<Vec<String>>()
+                    .join("|")
+            })
             .collect();
 
         for expected in expected_list {
-            let expected_key = expected.join("|");
+            use orthography::sanitize;
+
+            let expected_key = expected
+                .iter()
+                .map(|c| sanitize(*c))
+                .collect::<Vec<String>>()
+                .join("|");
 
             if !cand_keys.contains(&expected_key) {
                 let mut debug = String::new();
 
                 for (i, cand) in candidates.iter().enumerate() {
                     let joined = cand.splits.join(" | ");
-
                     let rule = &cand.rule;
-
                     let rule_name = rule.name;
                     let rule_tag = rule.tag;
 

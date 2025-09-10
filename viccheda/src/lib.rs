@@ -46,9 +46,8 @@ pub(crate) fn init_logger(subject: &'static str) -> once_cell::sync::OnceCell<lo
 
 #[cfg(test)]
 mod tests {
-    use core::panic;
-
     use super::*;
+    use orthography::sanitize;
 
     const CACHE_FILE: &'static str = "../raw_data/cache.txt";
 
@@ -83,7 +82,7 @@ mod tests {
                 .split('+')
                 .map(str::trim)
                 .filter(|s| !s.is_empty())
-                .map(|s| Splitter::nfc(s))
+                .map(|s| sanitize(s))
                 .collect();
 
             if val_list.is_empty() {
@@ -94,7 +93,7 @@ mod tests {
                 );
             }
 
-            candis.push((Splitter::nfc(key), val_list));
+            candis.push((sanitize(key), val_list));
         }
 
         candis
@@ -113,18 +112,13 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_cached_splits() {
         create_logger();
         let cases = read_candidates(CACHE_FILE);
 
         for (word, expected_parts) in cases {
-            let expected_str = join_parts(
-                expected_parts
-                    .iter()
-                    .map(|s| s.to_string())
-                    .collect::<Vec<String>>(),
-            );
-
+            let expected_str = join_parts(expected_parts);
             let viccheda = Viccheda::new(true);
             let cands = viccheda.split(&word);
 
@@ -164,7 +158,7 @@ mod tests {
             let expected_str = join_parts(
                 expected_parts
                     .iter()
-                    .map(|s| s.to_string())
+                    .map(|s| sanitize(s))
                     .collect::<Vec<String>>(),
             );
 

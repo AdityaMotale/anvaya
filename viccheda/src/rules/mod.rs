@@ -8,8 +8,8 @@ use std::char;
 use crate::rules::rule::{Candidate, Rule, RuleData, RuleGroup};
 use logger::{errorf, tracef, Logger};
 use orthography::{
-    Adjuncts, Akshara, AsChar, AsIter, AsStr, Consonant, FromStr, IndependentVowel, SpecialAkshara,
-    Vowel,
+    sanitize, Adjuncts, Akshara, AsChar, AsIter, AsStr, Consonant, FromStr, IndependentVowel,
+    SpecialAkshara, Vowel,
 };
 
 pub(crate) fn get_all_rules() -> Vec<Box<dyn Rule>> {
@@ -221,59 +221,6 @@ impl RuleUtils {
         chrs[index..].iter().collect()
     }
 
-    pub fn sanitize_sound(sound: &str) -> String {
-        // sanity check
-        if sound.is_empty() {
-            return String::new();
-        }
-
-        let mut chrs: Vec<String> = sound.chars().map(|c| c.to_string()).collect();
-        let first_char = chrs[0].clone().to_string();
-
-        // sanitize start
-        for (i, ch) in chrs.clone().iter().enumerate() {
-            if let Some(c) = Consonant::from_str(ch) {
-                break;
-            }
-
-            if let Some(iv) = IndependentVowel::from_str(ch) {
-                break;
-            }
-
-            if let Some(ad) = Adjuncts::from_str(ch) {
-                // if we found anusvara, we add Independent A
-                // otherwise we remove the Adjunct
-                if ad == Adjuncts::ANUSVARA {
-                    chrs.insert(0, IndependentVowel::A.as_char().to_string());
-                } else {
-                    chrs.remove(0);
-                }
-            }
-
-            // NOTE: We must only repalce vowel to indep at the start, not at
-            // end or middle
-            if let Some(v) = Vowel::from_str(ch) {
-                let indep = v.to_independent();
-                chrs[i] = indep.as_char().to_string();
-            }
-        }
-
-        // sanitize end (remove anusvara if is at end)
-        //
-        // NOTE: In sandhi this is replaced with [Visarga],
-        // but we normalize words (remove visarga at end)
-        if let Some(last) = chrs.last() {
-            if let Some(adj) = Adjuncts::from_str(last) {
-                if adj == Adjuncts::ANUSVARA {
-                    // removes the last element
-                    chrs.pop();
-                }
-            }
-        }
-
-        chrs.join("")
-    }
-
     /// A generic apply function for the base logic for applying rules
     pub fn generic_apply(
         rule_data: &RuleData,
@@ -298,10 +245,11 @@ impl RuleUtils {
             None => right.to_string(),
         };
 
-        let sanitized_right = Self::sanitize_sound(&right_candidate);
+        let sanitized_left = sanitize(&left_candidate);
+        let sanitized_right = sanitize(&right_candidate);
 
         Some(Candidate::new(
-            vec![left_candidate, sanitized_right],
+            vec![sanitized_left, sanitized_right],
             rule_data.to_owned(),
         ))
     }
