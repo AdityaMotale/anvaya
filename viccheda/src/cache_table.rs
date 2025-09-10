@@ -1,7 +1,7 @@
 use crate::rules::rule::{Candidate, RuleData};
 use orthography::Akshara;
 
-include!(concat!(env!("OUT_DIR"), "/cache_table.rs"));
+include!(concat!(env!("OUT_DIR"), "/cache_map.rs"));
 
 pub struct CacheTable;
 

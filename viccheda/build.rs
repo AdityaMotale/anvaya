@@ -28,7 +28,7 @@ fn build_freq_table() {
     }
 
     let out = format!(
-        "{}/freq_table.rs",
+        "{}/freq_map.rs",
         env::var("OUT_DIR").expect("Unable to get env::OUT_DIR")
     );
     let mut file = File::create(&out).unwrap_or_else(|e| panic!("Unable to create {}: {}", out, e));
@@ -79,7 +79,7 @@ fn build_cache_table() {
     }
 
     let out_path = format!(
-        "{}/cache_table.rs",
+        "{}/cache_map.rs",
         env::var("OUT_DIR").expect("OUT_DIR not set")
     );
     let mut file =

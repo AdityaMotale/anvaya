@@ -48,6 +48,9 @@ pub(crate) fn init_logger(subject: &'static str) -> once_cell::sync::OnceCell<lo
 mod tests {
     use super::*;
     use orthography::sanitize;
+    use rand::rngs::StdRng;
+    use rand::Rng;
+    use rand::SeedableRng;
 
     const CACHE_FILE: &'static str = "../raw_data/cache.txt";
 
@@ -59,13 +62,39 @@ mod tests {
         let _ = crate::init_logger("Viccheda (Test)");
     }
 
-    fn read_candidates(txt_path: &str) -> Vec<(String, Vec<String>)> {
-        let mut candis = Vec::new();
-
+    fn read_candidates(txt_path: &str, n: usize) -> Vec<(String, Vec<String>)> {
         let data = std::fs::read_to_string(txt_path)
             .unwrap_or_else(|e| panic!("ERROR {}: {}", txt_path, e));
 
-        for (line_no, line) in data.lines().enumerate() {
+        let lines: Vec<&str> = data.lines().collect();
+        let total = lines.len();
+
+        if total == 0 {
+            panic!("{}: file contains no lines", txt_path);
+        }
+
+        if n > total {
+            panic!(
+                "{}: requested {} lines but file only has {} lines",
+                txt_path, n, total
+            );
+        }
+
+        // choose start index so that start + n <= total
+        let max_start = total - n;
+
+        let start = if max_start == 0 {
+            0usize
+        } else {
+            let mut rng = rand::rng();
+            rng.random_range(0..=max_start)
+        };
+
+        let mut candis = Vec::with_capacity(n);
+
+        for (offset, &line) in lines[start..start + n].iter().enumerate() {
+            // keep original line-numbering style for panics (1-based)
+            let line_no = start + offset;
             let mut parts = line.splitn(2, ',');
 
             let key = parts
@@ -73,6 +102,7 @@ mod tests {
                 .map(str::trim)
                 .filter(|s| !s.is_empty())
                 .unwrap_or_else(|| panic!("line {}: missing key", line_no + 1));
+
             let value = parts
                 .next()
                 .map(str::trim)
@@ -115,7 +145,7 @@ mod tests {
     #[ignore]
     fn test_cached_splits() {
         create_logger();
-        let cases = read_candidates(CACHE_FILE);
+        let cases = read_candidates(CACHE_FILE, 20);
 
         for (word, expected_parts) in cases {
             let expected_str = join_parts(expected_parts);

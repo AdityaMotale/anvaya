@@ -1,4 +1,4 @@
-include!(concat!(env!("OUT_DIR"), "/freq_table.rs"));
+include!(concat!(env!("OUT_DIR"), "/freq_map.rs"));
 
 pub(crate) struct FreqTable;
 
