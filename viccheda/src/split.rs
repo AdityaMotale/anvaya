@@ -5,7 +5,7 @@ use crate::{
         rule::{Candidate, Rule},
     },
 };
-use logger::{debugf, tracef, warnf, Logger, PrettyVec};
+use logger::{debugf, infof, tracef, warnf, Logger, PrettyVec};
 use orthography::{sanitize, Akshara};
 use std::collections::HashSet;
 use unicode_normalization::UnicodeNormalization;
@@ -17,7 +17,7 @@ pub(crate) struct Splitter {
 
 impl Splitter {
     // a const to be used if word is not present in freq table
-    const RULE_COST: f64 = 1.0;
+    const RULE_COST: f64 = 0.1;
 
     const EPS: f64 = 1e-9;
 
@@ -42,6 +42,15 @@ impl Splitter {
         let mut best_candi: Option<(Candidate, f64)> = None;
 
         for c in candis {
+            if let Some(candi) = &best_candi {
+                debugf!(
+                    self.logger,
+                    "Current candidate is {} & w/ score of {}",
+                    candi.0,
+                    candi.1
+                );
+            }
+
             // sanity check
             if c.splits.len() != 2 {
                 warnf!(self.logger, "Generated splits are invalid (!= 2) for {c}");
@@ -119,14 +128,20 @@ impl Splitter {
             }
         }
 
+        infof!(
+            self.logger,
+            "Final candi is {} w/ score of {}",
+            best_candi.clone().unwrap().0,
+            best_candi.clone().unwrap().1
+        );
+
         best_candi
     }
 
-    fn generate_candidates(&self, input: &str) -> Vec<Candidate> {
+    fn generate_candidates(&self, morpheme: &str) -> Vec<Candidate> {
         let mut results: Vec<Candidate> = Vec::new();
         let mut seen: HashSet<String> = HashSet::new();
 
-        let morpheme = sanitize(input);
         let charset: Vec<char> = morpheme.chars().collect();
 
         debugf!(
@@ -177,11 +192,15 @@ impl Splitter {
             }
         }
 
-        debugf!(self.logger, "Generated candidates for [{input}] =>");
-
-        for res in results.clone() {
-            debugf!(self.logger, "{res}");
-        }
+        debugf!(
+            self.logger,
+            "Generated candidates for [{morpheme}] => {}",
+            results
+                .iter()
+                .map(|r| format!("\n{r}"))
+                .collect::<Vec<_>>()
+                .join("")
+        );
 
         results
     }
@@ -194,7 +213,7 @@ pub(crate) fn test_sandhi_cases(cases: Vec<(&str, Vec<Vec<&str>>)>, debug: bool)
     let splitter = Splitter::new(debug);
 
     for (morpheme, expected_list) in cases {
-        let candidates = splitter.generate_candidates(&sanitize(morpheme));
+        let candidates = splitter.generate_candidates(morpheme);
 
         // normalized keys for contains-check
         let cand_keys: Vec<String> = candidates

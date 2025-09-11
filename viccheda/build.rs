@@ -2,6 +2,8 @@ use std::env;
 use std::fs::{read_to_string, File};
 use std::io::Write;
 
+use orthography::sanitize;
+
 const FREQ_TABLE: &'static str = "../raw_data/freq.txt";
 const CANDI_TABLE: &'static str = "../raw_data/cache.txt";
 
@@ -14,6 +16,9 @@ fn build_freq_table() {
     let data = read_to_string(FREQ_TABLE).expect(&format!("failed to read {FREQ_TABLE}"));
     let mut builder = phf_codegen::Map::new();
 
+    let mut total_count: usize = 0;
+    let mut total_freq: usize = 0;
+
     for line in data.lines() {
         let mut parts = line.split(",");
 
@@ -24,7 +29,10 @@ fn build_freq_table() {
             .parse::<usize>()
             .expect("Unable to parse value from string");
 
-        builder.entry(key, value.to_string());
+        builder.entry(sanitize(key), value.to_string());
+
+        total_count += 1;
+        total_freq += value;
     }
 
     let out = format!(
@@ -35,8 +43,12 @@ fn build_freq_table() {
 
     write!(
         file,
-        "static FREQ_TABLE: phf::Map<&'static str, usize> = {};\n",
-        builder.build()
+        "static FREQ_TABLE: phf::Map<&'static str, usize> = {};\n\
+        static FREQ_TABLE_COUNT: usize = {};\n\
+        static FREQ_TABLE_TOTAL_FREQ: usize = {};\n",
+        builder.build(),
+        total_count,
+        total_freq
     )
     .unwrap_or_else(|e| panic!("Unable to write {}: {}", out, e));
 }

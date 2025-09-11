@@ -617,12 +617,12 @@ impl Akshara {
 pub type SpecialAkshara = (Akshara, bool);
 
 /// get the NFC form of the word
-fn to_nfc(word: &str) -> String {
+pub fn to_nfc(word: &str) -> String {
     word.nfc().collect()
 }
 
 /// get char clusters w/ unicode segmentation by grouping chrs together
-fn to_unicode_segmentation(word: &str) -> Vec<String> {
+pub fn to_unicode_segmentation(word: &str) -> Vec<String> {
     UnicodeSegmentation::graphemes(word, true)
         .into_iter()
         .map(|s| s.to_string())
@@ -662,8 +662,8 @@ fn ends_with_standalone_ma_virama(input: &str) -> bool {
 /// its base form!
 pub fn sanitize(word: &str) -> String {
     // sanity check
-    if word.is_empty() {
-        return String::new();
+    if word.is_empty() || word.len() < 2 {
+        return word.to_string();
     }
 
     let input = to_nfc(word);

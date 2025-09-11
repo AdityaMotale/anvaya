@@ -1,5 +1,7 @@
 #![allow(unused)]
 
+use orthography::to_nfc;
+
 use crate::{cache_table::CacheTable, rules::rule::Candidate, split::Splitter};
 
 mod cache_table;
@@ -19,8 +21,10 @@ impl Viccheda {
     }
 
     pub fn split(&self, word: &str) -> Option<(Candidate, f64)> {
+        let nfc_word = to_nfc(word);
+
         // sandhi cache
-        if let Some(res) = CacheTable::get(word) {
+        if let Some(res) = CacheTable::get(&word) {
             return Some((res, 1.0));
         }
 
@@ -112,7 +116,7 @@ mod tests {
                 .split('+')
                 .map(str::trim)
                 .filter(|s| !s.is_empty())
-                .map(|s| sanitize(s))
+                .map(|s| s.to_string())
                 .collect();
 
             if val_list.is_empty() {
@@ -142,7 +146,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_cached_splits() {
         create_logger();
         let cases = read_candidates(CACHE_FILE, 20);

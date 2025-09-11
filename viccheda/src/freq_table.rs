@@ -12,11 +12,31 @@ impl FreqTable {
     pub fn iter() -> impl Iterator<Item = (&'static str, usize)> {
         FREQ_TABLE.entries().map(|(k, v)| (*k, *v))
     }
+
+    #[inline]
+    pub fn get_total_count() -> usize {
+        FREQ_TABLE_COUNT
+    }
+
+    #[inline]
+    pub fn get_freq_count() -> usize {
+        FREQ_TABLE_TOTAL_FREQ
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn sanity_check_total_count() {
+        assert!(FreqTable::get_total_count() > 0);
+    }
+
+    #[test]
+    fn sanity_check_total_freq_count() {
+        assert!(FreqTable::get_freq_count() > 0);
+    }
 
     #[test]
     fn test_all_values_are_some() {

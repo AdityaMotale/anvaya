@@ -1,5 +1,5 @@
 use crate::rules::rule::{Candidate, RuleData};
-use orthography::Akshara;
+use orthography::{sanitize, Akshara};
 
 include!(concat!(env!("OUT_DIR"), "/cache_map.rs"));
 
@@ -9,7 +9,8 @@ impl CacheTable {
     pub fn get(key: &str) -> Option<Candidate> {
         if let Some(res) = Self::_get(key) {
             return Some(Candidate {
-                splits: res.iter().map(|s| s.to_string()).collect::<Vec<String>>(),
+                // NOTE: We sanitize the output here
+                splits: res.iter().map(|s| sanitize(s)).collect::<Vec<String>>(),
                 rule: RuleData {
                     name: "Cache",
                     desc: "NA",
