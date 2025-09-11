@@ -16,22 +16,32 @@ fn build_freq_table() {
     let data = read_to_string(FREQ_TABLE).expect(&format!("failed to read {FREQ_TABLE}"));
     let mut builder = phf_codegen::Map::new();
 
-    let mut total_count: usize = 0;
+    let mut vocab_size: usize = 0;
     let mut total_freq: usize = 0;
 
     for line in data.lines() {
         let mut parts = line.split(",");
 
-        let key = parts.next().expect("Unable to read the key");
+        let key = {
+            let k = parts.next().expect("Unable to read the key");
+
+            sanitize(k)
+        };
+
+        // sanity check
+        if key.is_empty() {
+            continue;
+        }
+
         let value = parts
             .next()
             .expect("Unable to read the value")
             .parse::<usize>()
             .expect("Unable to parse value from string");
 
-        builder.entry(sanitize(key), value.to_string());
+        builder.entry(key, value.to_string());
 
-        total_count += 1;
+        vocab_size += 1;
         total_freq += value;
     }
 
@@ -44,11 +54,11 @@ fn build_freq_table() {
     write!(
         file,
         "static FREQ_TABLE: phf::Map<&'static str, usize> = {};\n\
-        static FREQ_TABLE_COUNT: usize = {};\n\
-        static FREQ_TABLE_TOTAL_FREQ: usize = {};\n",
+        static FREQ_VOCAB_SIZE: usize = {};\n\
+        static FREQ_TOTAL_COUNT: usize = {};\n",
         builder.build(),
-        total_count,
-        total_freq
+        vocab_size,
+        total_freq,
     )
     .unwrap_or_else(|e| panic!("Unable to write {}: {}", out, e));
 }

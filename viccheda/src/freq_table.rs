@@ -14,13 +14,13 @@ impl FreqTable {
     }
 
     #[inline]
-    pub fn get_total_count() -> usize {
-        FREQ_TABLE_COUNT
+    pub fn get_total_freq() -> usize {
+        FREQ_TOTAL_COUNT
     }
 
     #[inline]
-    pub fn get_freq_count() -> usize {
-        FREQ_TABLE_TOTAL_FREQ
+    pub fn get_vocab_size() -> usize {
+        FREQ_VOCAB_SIZE
     }
 }
 
@@ -29,13 +29,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn sanity_check_total_count() {
-        assert!(FreqTable::get_total_count() > 0);
+    fn sanity_check_vocab_size() {
+        assert!(FreqTable::get_vocab_size() > 0);
     }
 
     #[test]
     fn sanity_check_total_freq_count() {
-        assert!(FreqTable::get_freq_count() > 0);
+        assert!(FreqTable::get_total_freq() > 0);
     }
 
     #[test]

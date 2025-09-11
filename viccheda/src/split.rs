@@ -16,9 +16,7 @@ pub(crate) struct Splitter {
 }
 
 impl Splitter {
-    // a const to be used if word is not present in freq table
-    const RULE_COST: f64 = 0.1;
-
+    const ALPHA: f64 = 0.1;
     const EPS: f64 = 1e-9;
 
     pub fn new(debug: bool) -> Self {
@@ -32,25 +30,17 @@ impl Splitter {
 
     pub fn best_candidate(&self, input: &str) -> Option<(Candidate, f64)> {
         let candis = Self::generate_candidates(&self, input);
+        let total = FreqTable::get_total_freq();
+        let vocab = FreqTable::get_vocab_size();
 
         // sanity check
         if candis.is_empty() {
             return None;
         }
 
-        // choose the first as default
         let mut best_candi: Option<(Candidate, f64)> = None;
 
         for c in candis {
-            if let Some(candi) = &best_candi {
-                debugf!(
-                    self.logger,
-                    "Current candidate is {} & w/ score of {}",
-                    candi.0,
-                    candi.1
-                );
-            }
-
             // sanity check
             if c.splits.len() != 2 {
                 warnf!(self.logger, "Generated splits are invalid (!= 2) for {c}");
@@ -59,20 +49,36 @@ impl Splitter {
 
             let (left, right) = (&c.splits[0], &c.splits[1]);
 
-            let raw_f1 = FreqTable::get(left).unwrap_or(0) as f64 + Self::RULE_COST;
-            let raw_f2 = FreqTable::get(right).unwrap_or(0) as f64 + Self::RULE_COST;
-            let score = raw_f1.ln() + raw_f2.ln();
+            let count1 = FreqTable::get(left).unwrap_or(0);
+            let count2 = FreqTable::get(right).unwrap_or(0);
 
-            // if no candidate is yet selected
-            if let None = best_candi {
+            let logp1 = Self::log_prob(count1, total, Self::ALPHA, vocab);
+            let logp2 = Self::log_prob(count2, total, Self::ALPHA, vocab);
+
+            let score = logp1 + logp2;
+
+            // to debug each candidate score count
+            tracef!(
+                self.logger,
+                "cand {} -> counts: ({}, {}), logp: ({:.6}, {:.6}), score: {:.6}",
+                c,
+                count1,
+                count2,
+                logp1,
+                logp2,
+                score
+            );
+
+            // we start by setting the first candi as the best one
+            if best_candi.is_none() {
                 best_candi = Some((c, score));
                 continue;
             }
 
-            let (ref old_c, old_score) = best_candi.clone().unwrap();
+            let (old_c, old_score) = best_candi.as_ref().unwrap();
 
             // if current score is better then prev
-            if old_score > score + Self::EPS {
+            if score > old_score + Self::EPS {
                 best_candi = Some((c, score));
                 continue;
             }
@@ -81,6 +87,9 @@ impl Splitter {
             if (old_score - score).abs() <= Self::EPS {
                 let old_left = &old_c.splits[0];
                 let old_right = &old_c.splits[1];
+
+                let raw_f1 = count1 as f64;
+                let raw_f2 = count2 as f64;
 
                 let old_raw_f1 = FreqTable::get(old_left).unwrap_or(0) as f64;
                 let old_raw_f2 = FreqTable::get(old_right).unwrap_or(0) as f64;
@@ -94,28 +103,29 @@ impl Splitter {
                     continue;
                 }
 
-                // If both windows of prev's are present and new's are
-                // not the prev is the better candidate
+                // If both windows of prev's are present and new's aren't,
+                // the prev is the better candidate
                 if old_both_in && !both_in {
                     continue;
                 }
 
-                // ▶ TIE-BREAKER 2: Higher frequency product (i.e. the more the frequency
-                // of windows the better)
-                let new_freq = raw_f1 * raw_f2;
-                let old_freq = old_raw_f1 * old_raw_f2;
+                // ▶ TIE-BREAKER 2: Higher frequency product
+                // (i.e. the more the frequency of windows the better)
+                let new_freq_prod = raw_f1 * raw_f2;
+                let old_freq_prod = old_raw_f1 * old_raw_f2;
 
-                if new_freq > old_freq + Self::EPS {
+                if new_freq_prod > old_freq_prod {
                     best_candi = Some((c, score));
                     continue;
                 }
 
-                // old candi is better
-                if new_freq < old_freq - Self::EPS {
+                // current best is a better candi
+                if old_freq_prod > new_freq_prod {
                     continue;
                 }
 
-                // ▶ TIE-BREAKER 3 [EXP]: prefer earlier split (i.e. prefer smaller left window)
+                // ▶ TIE-BREAKER 3 [EXP]: prefer earlier split
+                // (i.e. prefer smaller left window)
                 let left_len = left.chars().count();
                 let old_left_len = old_left.chars().count();
 
@@ -124,18 +134,22 @@ impl Splitter {
                     continue;
                 }
 
-                // otherwise keep the current candi and continue
+                // otherwise we keep the current best
             }
         }
 
-        infof!(
-            self.logger,
-            "Final candi is {} w/ score of {}",
-            best_candi.clone().unwrap().0,
-            best_candi.clone().unwrap().1
-        );
+        if let Some((c, s)) = &best_candi {
+            infof!(self.logger, "Final candi is {} w/ score of {}", c, s);
+        }
 
         best_candi
+    }
+
+    #[inline]
+    fn log_prob(count: usize, total: usize, alpha: f64, vocab: usize) -> f64 {
+        let num = (count as f64) + alpha;
+        let denom = (total as f64) + alpha * (vocab as f64);
+        (num / denom).ln()
     }
 
     fn generate_candidates(&self, morpheme: &str) -> Vec<Candidate> {
