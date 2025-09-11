@@ -2,7 +2,7 @@ use orthography::sanitize;
 use std::time::Instant;
 use viccheda::Viccheda;
 
-const CANDI_FILE: &'static str = "../raw_data/candi.txt";
+const CANDI_FILE: &'static str = "../raw_data/small_candi.txt";
 
 fn read_candidates(txt_path: &str) -> Vec<(String, Vec<String>)> {
     let data =
@@ -39,7 +39,7 @@ fn read_candidates(txt_path: &str) -> Vec<(String, Vec<String>)> {
             );
         }
 
-        candis.push((sanitize(key), val_list));
+        candis.push((key.to_string(), val_list));
     }
 
     candis
@@ -50,7 +50,7 @@ struct CandidateResult {
     idx: usize,
     word: String,
     expected: String,
-    actual: Option<String>, // None if skipped / no split
+    actual: Option<String>,
     correct: bool,
     time_ms: f64,
 }
@@ -59,13 +59,16 @@ fn median(mut v: Vec<f64>) -> f64 {
     if v.is_empty() {
         return 0.0;
     }
+
     v.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
     let n = v.len();
+
     if n % 2 == 1 {
-        v[n / 2]
-    } else {
-        (v[n / 2 - 1] + v[n / 2]) / 2.0
+        return v[n / 2];
     }
+
+    (v[n / 2 - 1] + v[n / 2]) / 2.0
 }
 
 fn stddev(v: &[f64], mean: f64) -> f64 {
@@ -111,9 +114,9 @@ fn main() {
                 });
             }
             Some(res) => {
-                let actual_vec: Vec<String> = res.splits.iter().map(|s| sanitize(s)).collect();
-                let actual_join = actual_vec.join("|");
+                let actual_join = res.splits.join("|");
                 let correct = actual_join == expected_join;
+
                 results.push(CandidateResult {
                     idx: i,
                     word,
