@@ -1,6 +1,6 @@
 use crate::rules::{
-    Rule,
     rule::{BaseRule, RuleData, RuleGroup},
+    Rule,
 };
 use orthography::{Adjuncts, Akshara, IndependentVowel, SoundClass, Vowel};
 
@@ -20,7 +20,7 @@ impl SvarPoorvaroop {
     fn avg_to_a_a() -> Vec<Box<dyn Rule>> {
         vec![Box::new(BaseRule(RuleData {
             name: "savarṇa-pūrvarūpa-avg1",
-            desc: "ऽ = ऽ + अ ",
+            desc: "ऽ = अ + अ ",
             tag: "6.1.109",
             left: Akshara(vec![SoundClass::Vowel(Vowel::A)]),
             right: Akshara(vec![SoundClass::IndependentVowel(IndependentVowel::A)]),
@@ -39,14 +39,14 @@ mod tests {
     }
 
     #[test]
-    fn avg_to_avg_a_test_debug() {
+    fn avg_to_a_a_test_debug() {
         create_logger();
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("अन्तेऽपि", vec![vec!["अन्ते", "अपि"]])];
         test_sandhi_cases(cases, true);
     }
 
     #[test]
-    fn e_to_a_e_test() {
+    fn avg_to_a_a_test() {
         let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![
             // e
             ("अन्तेऽपि", vec![vec!["अन्ते", "अपि"]]),

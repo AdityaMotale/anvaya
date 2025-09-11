@@ -666,25 +666,12 @@ pub fn sanitize(word: &str) -> String {
         return word.to_string();
     }
 
-    let input = to_nfc(word);
+    let input = to_nfc(word.trim());
     let mut chrs: Vec<String> = input.chars().map(|c| c.to_string()).collect();
 
     // sanitize start
-    loop {
-        let ch = match chrs.first() {
-            Some(c) => &c.clone(),
-            None => break,
-        };
-
-        if let Some(_) = Consonant::from_str(ch) {
-            break;
-        }
-
-        if let Some(_) = IndependentVowel::from_str(ch) {
-            break;
-        }
-
-        if let Some(ad) = Adjuncts::from_str(ch) {
+    if let Some(first) = chrs.first().clone() {
+        if let Some(ad) = Adjuncts::from_str(&first) {
             // if we found anusvara, we add Independent A
             // otherwise we remove the Adjunct
             if ad == Adjuncts::ANUSVARA {
@@ -692,20 +679,15 @@ pub fn sanitize(word: &str) -> String {
             } else {
                 chrs.remove(0);
             }
-
-            break;
-        }
-
-        // NOTE: We must only repalce vowel to indep at the start, not at
-        // end or middle
-        //
-        // NOTE: This change is protected by above checks, which breaks
-        // the iteration if a valid character is found in the sequence
-        if let Some(v) = Vowel::from_str(ch) {
+        } else if let Some(v) = Vowel::from_str(&first) {
+            // NOTE: We must only repalce vowel to indep at the start, not at
+            // end or middle
+            //
+            // NOTE: This change is protected by above checks, which breaks
+            // the iteration if a valid character is found in the sequence
             let indep = v.to_independent();
-            chrs[0] = indep.as_char().to_string();
 
-            break;
+            chrs[0] = indep.as_char().to_string();
         }
     }
 

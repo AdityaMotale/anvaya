@@ -2,7 +2,7 @@ use orthography::sanitize;
 use std::time::Instant;
 use viccheda::Viccheda;
 
-const CANDI_FILE: &'static str = "../raw_data/small_candi.txt";
+const CANDI_FILE: &'static str = "../raw_data/candi.txt";
 
 fn read_candidates(txt_path: &str) -> Vec<(String, Vec<String>)> {
     let data =
@@ -39,7 +39,7 @@ fn read_candidates(txt_path: &str) -> Vec<(String, Vec<String>)> {
             );
         }
 
-        candis.push((key.to_string(), val_list));
+        candis.push((sanitize(key), val_list));
     }
 
     candis

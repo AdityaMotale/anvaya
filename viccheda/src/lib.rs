@@ -25,7 +25,7 @@ impl Viccheda {
     }
 
     pub fn split(&self, word: &str) -> Option<Candidate> {
-        let nfc_word = to_nfc(word);
+        let nfc_word = to_nfc(word.trim());
 
         // sandhi cache
         if let Some(res) = CacheTable::get(&nfc_word) {
