@@ -6,9 +6,8 @@ use crate::{
     },
 };
 use logger::{debugf, infof, tracef, warnf, Logger, PrettyVec};
-use orthography::{sanitize, Akshara};
+use orthography::Akshara;
 use std::collections::HashSet;
-use unicode_normalization::UnicodeNormalization;
 
 pub(crate) struct Splitter {
     pub logger: Logger,

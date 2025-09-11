@@ -1,6 +1,6 @@
 use crate::rules::{
-    Adjuncts, Rule,
     rule::{MultiOptRule, RuleData, RuleGroup},
+    Adjuncts, Rule,
 };
 use orthography::{Akshara, Consonant, SoundClass, Vowel};
 
@@ -37,7 +37,7 @@ impl VynjanParaswarn {
             .collect();
 
         let swap_list: Vec<Akshara> = (0..5)
-            .map(|consonant| Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]))
+            .map(|_| Akshara(vec![SoundClass::Adjuncts(Adjuncts::ANUSVARA)]))
             .collect();
 
         assert!(merged_list.len() == swap_list.len());

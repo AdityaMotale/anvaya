@@ -11,6 +11,7 @@ pub struct Candidate {
 }
 
 #[derive(Debug, Clone)]
+#[allow(unused)]
 pub(crate) struct CandidateList<'a>(pub &'a [Candidate]);
 
 impl Candidate {
@@ -30,7 +31,7 @@ impl std::fmt::Display for Candidate {
 
 impl<'a> std::fmt::Display for CandidateList<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\n");
+        writeln!(f, "\n").expect("Unable to write to stdout");
 
         for c in self.0 {
             writeln!(f, "{}", c)?;
@@ -189,8 +190,7 @@ impl Rule for MultiOptRule {
 
         let mut candidates = Vec::new();
 
-        for (idx, (merged, left_candi)) in self.merged_list.iter().zip(&self.swap_list).enumerate()
-        {
+        for (merged, left_candi) in self.merged_list.iter().zip(&self.swap_list) {
             let (left_base, special_removed) =
                 match RuleUtils::trim_left_base(left, merged, sp, logger) {
                     Some((lb, sr)) => (lb, sr),
@@ -211,7 +211,7 @@ impl Rule for MultiOptRule {
             let sanitized_right = sanitize(&right_candidate);
 
             candidates.push(Candidate::new(
-                vec![left_candidate, sanitized_right],
+                vec![sanitized_left, sanitized_right],
                 self.data.clone(),
             ));
         }

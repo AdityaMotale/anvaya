@@ -8,8 +8,7 @@ use std::char;
 use crate::rules::rule::{Candidate, Rule, RuleData, RuleGroup};
 use logger::{errorf, tracef, Logger};
 use orthography::{
-    sanitize, Adjuncts, Akshara, AsChar, AsIter, AsStr, Consonant, FromStr, IndependentVowel,
-    SpecialAkshara, Vowel,
+    sanitize, Adjuncts, Akshara, AsChar, AsIter, AsStr, Consonant, IndependentVowel, SpecialAkshara,
 };
 
 pub(crate) fn get_all_rules() -> Vec<Box<dyn Rule>> {
@@ -259,8 +258,8 @@ impl RuleUtils {
 mod tests {
     use super::*;
     use crate::init_logger;
+    use orthography::SoundClass;
     use orthography::{Adjuncts, Vowel};
-    use orthography::{AsStr, SoundClass};
 
     #[test]
     fn test_trim_sound_with_akshara() {

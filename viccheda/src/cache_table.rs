@@ -1,7 +1,7 @@
+include!(concat!(env!("OUT_DIR"), "/cache_map.rs"));
+
 use crate::rules::rule::{Candidate, RuleData};
 use orthography::{sanitize, Akshara};
-
-include!(concat!(env!("OUT_DIR"), "/cache_map.rs"));
 
 pub struct CacheTable;
 
@@ -32,7 +32,7 @@ impl CacheTable {
     }
 
     #[inline]
-    pub fn iter() -> impl Iterator<Item = (&'static str, &'static [&'static str])> {
+    fn _iter() -> impl Iterator<Item = (&'static str, &'static [&'static str])> {
         CACHE_TABLE.entries().map(|(k, v)| (*k, *v))
     }
 }
@@ -43,7 +43,7 @@ mod tests {
 
     #[test]
     fn test_iter_no_empty_values_and_len_bounds() {
-        for (k, vals) in CacheTable::iter() {
+        for (k, vals) in CacheTable::_iter() {
             assert!(!vals.is_empty(), "key {:?} has empty value slice", k);
 
             for comp in vals {
@@ -54,7 +54,7 @@ mod tests {
 
     #[test]
     fn test_iter_get_roundtrip() {
-        for (k, vals) in CacheTable::iter() {
+        for (k, vals) in CacheTable::_iter() {
             assert_eq!(CacheTable::_get(k).unwrap(), vals);
         }
     }

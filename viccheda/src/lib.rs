@@ -1,8 +1,5 @@
-#![allow(unused)]
-
-use orthography::to_nfc;
-
 use crate::{cache_table::CacheTable, rules::rule::Candidate, split::Splitter};
+use orthography::to_nfc;
 
 mod cache_table;
 mod freq_table;
@@ -24,11 +21,11 @@ impl Viccheda {
         let nfc_word = to_nfc(word);
 
         // sandhi cache
-        if let Some(res) = CacheTable::get(&word) {
+        if let Some(res) = CacheTable::get(&nfc_word) {
             return Some((res, 1.0));
         }
 
-        self.splitter.best_candidate(word)
+        self.splitter.best_candidate(&nfc_word)
     }
 }
 
@@ -52,9 +49,7 @@ pub(crate) fn init_logger(subject: &'static str) -> once_cell::sync::OnceCell<lo
 mod tests {
     use super::*;
     use orthography::sanitize;
-    use rand::rngs::StdRng;
     use rand::Rng;
-    use rand::SeedableRng;
 
     const CACHE_FILE: &'static str = "../raw_data/cache.txt";
 

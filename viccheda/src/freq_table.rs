@@ -9,7 +9,7 @@ impl FreqTable {
     }
 
     #[inline]
-    pub fn iter() -> impl Iterator<Item = (&'static str, usize)> {
+    fn _iter() -> impl Iterator<Item = (&'static str, usize)> {
         FREQ_TABLE.entries().map(|(k, v)| (*k, *v))
     }
 
@@ -40,7 +40,7 @@ mod tests {
 
     #[test]
     fn test_all_values_are_some() {
-        for (key, value) in FreqTable::iter() {
+        for (key, value) in FreqTable::_iter() {
             assert!(
                 value > 0,
                 "Key {key:?} has non-positive or missing value: {value}"
@@ -50,7 +50,7 @@ mod tests {
 
     #[test]
     fn test_roundtrip_get_vs_iter() {
-        for (key, value) in FreqTable::iter() {
+        for (key, value) in FreqTable::_iter() {
             assert_eq!(FreqTable::get(key), Some(value));
         }
     }
