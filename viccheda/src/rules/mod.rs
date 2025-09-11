@@ -3,9 +3,7 @@ mod svar;
 mod visarg;
 mod vyanjan;
 
-use std::char;
-
-use crate::rules::rule::{Candidate, Rule, RuleData, RuleGroup};
+use crate::rules::rule::{InternalCandidate, Rule, RuleData, RuleGroup};
 use logger::{errorf, tracef, Logger};
 use orthography::{
     sanitize, Adjuncts, Akshara, AsChar, AsIter, AsStr, Consonant, IndependentVowel, SpecialAkshara,
@@ -227,7 +225,7 @@ impl RuleUtils {
         right: &str,
         sp: Option<&SpecialAkshara>,
         logger: &Logger,
-    ) -> Option<Candidate> {
+    ) -> Option<InternalCandidate> {
         let (left_base, special_removed) =
             match Self::trim_left_base(left, &rule_data.merged, sp, logger) {
                 Some((lb, sr)) => (lb, sr),
@@ -247,7 +245,7 @@ impl RuleUtils {
         let sanitized_left = sanitize(&left_candidate);
         let sanitized_right = sanitize(&right_candidate);
 
-        Some(Candidate::new(
+        Some(InternalCandidate::new(
             vec![sanitized_left, sanitized_right],
             rule_data.to_owned(),
         ))

@@ -5,22 +5,22 @@ use orthography::{
 };
 
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct Candidate {
+pub struct InternalCandidate {
     pub splits: Vec<String>,
     pub rule: RuleData,
 }
 
 #[derive(Debug, Clone)]
 #[allow(unused)]
-pub(crate) struct CandidateList<'a>(pub &'a [Candidate]);
+pub(crate) struct CandidateList<'a>(pub &'a [InternalCandidate]);
 
-impl Candidate {
+impl InternalCandidate {
     pub fn new(splits: Vec<String>, rule: RuleData) -> Self {
         Self { splits, rule }
     }
 }
 
-impl std::fmt::Display for Candidate {
+impl std::fmt::Display for InternalCandidate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let strs: Vec<&str> = self.splits.iter().map(String::as_str).collect();
         let splits = PrettyVec(strs);
@@ -50,7 +50,7 @@ pub(crate) trait Rule: Send + Sync {
         right: &str,
         logger: &Logger,
         sp: Option<&SpecialAkshara>,
-    ) -> Option<Vec<Candidate>> {
+    ) -> Option<Vec<InternalCandidate>> {
         if let Some(candi) = RuleUtils::generic_apply(&self.data(), left, right, sp, logger) {
             return Some(vec![candi]);
         }
@@ -68,6 +68,21 @@ pub struct RuleData {
     pub right: Akshara,
     pub merged: Akshara,
     pub special_sequence: Option<Vec<(Akshara, bool)>>,
+}
+
+impl Default for RuleData {
+    // to be used for debugging when no rules are applied
+    fn default() -> Self {
+        Self {
+            name: "<?>",
+            desc: "<?>",
+            tag: "<?>",
+            left: Akshara(vec![]),
+            right: Akshara(vec![]),
+            merged: Akshara(vec![]),
+            special_sequence: None,
+        }
+    }
 }
 
 impl std::fmt::Display for RuleData {
@@ -105,7 +120,7 @@ impl Rule for AllKindRule {
         right: &str,
         logger: &Logger,
         sp: Option<&SpecialAkshara>,
-    ) -> Option<Vec<Candidate>> {
+    ) -> Option<Vec<InternalCandidate>> {
         let mut candidates = Vec::new();
 
         let right_candi_list: Vec<Option<&'static str>> = match self.kind {
@@ -152,7 +167,7 @@ impl Rule for AllKindRule {
 
                 let sanitized_right = sanitize(&right_candidate);
 
-                candidates.push(Candidate::new(
+                candidates.push(InternalCandidate::new(
                     vec![sanitized_left.clone(), sanitized_right],
                     self.data.clone(),
                 ));
@@ -184,7 +199,7 @@ impl Rule for MultiOptRule {
         right: &str,
         logger: &Logger,
         sp: Option<&SpecialAkshara>,
-    ) -> Option<Vec<Candidate>> {
+    ) -> Option<Vec<InternalCandidate>> {
         // sanity check
         assert!(self.merged_list.len() == self.swap_list.len());
 
@@ -210,7 +225,7 @@ impl Rule for MultiOptRule {
             let sanitized_left = sanitize(&left_candidate);
             let sanitized_right = sanitize(&right_candidate);
 
-            candidates.push(Candidate::new(
+            candidates.push(InternalCandidate::new(
                 vec![sanitized_left, sanitized_right],
                 self.data.clone(),
             ));

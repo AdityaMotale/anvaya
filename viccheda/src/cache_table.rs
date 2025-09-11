@@ -1,7 +1,7 @@
 include!(concat!(env!("OUT_DIR"), "/cache_map.rs"));
 
-use crate::rules::rule::{Candidate, RuleData};
-use orthography::{sanitize, Akshara};
+use crate::Candidate;
+use orthography::sanitize;
 
 pub struct CacheTable;
 
@@ -11,15 +11,8 @@ impl CacheTable {
             return Some(Candidate {
                 // NOTE: We sanitize the output here
                 splits: res.iter().map(|s| sanitize(s)).collect::<Vec<String>>(),
-                rule: RuleData {
-                    name: "Cache",
-                    desc: "NA",
-                    tag: "NA",
-                    left: Akshara(vec![]),
-                    right: Akshara(vec![]),
-                    merged: Akshara(vec![]),
-                    special_sequence: None,
-                },
+                rule: None,
+                score: None,
             });
         }
 

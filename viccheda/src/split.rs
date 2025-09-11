@@ -2,8 +2,9 @@ use crate::{
     freq_table::FreqTable,
     rules::{
         get_all_rules,
-        rule::{Candidate, Rule},
+        rule::{InternalCandidate, Rule, RuleData},
     },
+    Candidate,
 };
 use logger::{debugf, infof, tracef, warnf, Logger, PrettyVec};
 use orthography::Akshara;
@@ -27,7 +28,7 @@ impl Splitter {
         Self { logger, rules }
     }
 
-    pub fn best_candidate(&self, input: &str) -> Option<(Candidate, f64)> {
+    pub fn best_candidate(&self, input: &str) -> Option<Candidate> {
         let candis = Self::generate_candidates(&self, input);
         let total = FreqTable::get_total_freq();
         let vocab = FreqTable::get_vocab_size();
@@ -37,7 +38,7 @@ impl Splitter {
             return None;
         }
 
-        let mut best_candi: Option<(Candidate, f64)> = None;
+        let mut best_candi: Option<Candidate> = None;
 
         for c in candis {
             // sanity check
@@ -70,15 +71,32 @@ impl Splitter {
 
             // we start by setting the first candi as the best one
             if best_candi.is_none() {
-                best_candi = Some((c, score));
+                best_candi = Some(Candidate {
+                    rule: Some(c.rule),
+                    score: Some(score),
+                    splits: c.splits,
+                });
+
                 continue;
             }
 
-            let (old_c, old_score) = best_candi.as_ref().unwrap();
+            let old_c = best_candi.as_ref().unwrap();
+            let old_score = {
+                if let None = old_c.score {
+                    continue;
+                }
+
+                old_c.score.unwrap()
+            };
 
             // if current score is better then prev
             if score > old_score + Self::EPS {
-                best_candi = Some((c, score));
+                best_candi = Some(Candidate {
+                    rule: Some(c.rule),
+                    score: Some(score),
+                    splits: c.splits,
+                });
+
                 continue;
             }
 
@@ -98,7 +116,12 @@ impl Splitter {
 
                 // ▶ TIE-BREAKER 1: Both windows (RHS & LHS) are present in [FREQ_TABLE]
                 if both_in && !old_both_in {
-                    best_candi = Some((c, score));
+                    best_candi = Some(Candidate {
+                        rule: Some(c.rule),
+                        score: Some(score),
+                        splits: c.splits,
+                    });
+
                     continue;
                 }
 
@@ -114,7 +137,12 @@ impl Splitter {
                 let old_freq_prod = old_raw_f1 * old_raw_f2;
 
                 if new_freq_prod > old_freq_prod {
-                    best_candi = Some((c, score));
+                    best_candi = Some(Candidate {
+                        rule: Some(c.rule),
+                        score: Some(score),
+                        splits: c.splits,
+                    });
+
                     continue;
                 }
 
@@ -129,7 +157,12 @@ impl Splitter {
                 let old_left_len = old_left.chars().count();
 
                 if left_len < old_left_len {
-                    best_candi = Some((c, score));
+                    best_candi = Some(Candidate {
+                        rule: Some(c.rule),
+                        score: Some(score),
+                        splits: c.splits,
+                    });
+
                     continue;
                 }
 
@@ -137,8 +170,16 @@ impl Splitter {
             }
         }
 
-        if let Some((c, s)) = &best_candi {
-            infof!(self.logger, "Final candi is {} w/ score of {}", c, s);
+        if let Some(candi) = &best_candi {
+            infof!(
+                self.logger,
+                "Final candi is {} w/ score of {}",
+                InternalCandidate {
+                    splits: candi.splits.clone(),
+                    rule: candi.rule.clone().unwrap_or(RuleData::default())
+                },
+                candi.score.unwrap_or(0.0),
+            );
         }
 
         best_candi
@@ -151,8 +192,8 @@ impl Splitter {
         (num / denom).ln()
     }
 
-    fn generate_candidates(&self, morpheme: &str) -> Vec<Candidate> {
-        let mut results: Vec<Candidate> = Vec::new();
+    fn generate_candidates(&self, morpheme: &str) -> Vec<InternalCandidate> {
+        let mut results: Vec<InternalCandidate> = Vec::new();
         let mut seen: HashSet<String> = HashSet::new();
 
         let charset: Vec<char> = morpheme.chars().collect();

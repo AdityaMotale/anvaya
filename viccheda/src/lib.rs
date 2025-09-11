@@ -1,10 +1,17 @@
-use crate::{cache_table::CacheTable, rules::rule::Candidate, split::Splitter};
-use orthography::to_nfc;
-
 mod cache_table;
 mod freq_table;
 mod rules;
 mod split;
+
+use crate::{cache_table::CacheTable, rules::rule::RuleData, split::Splitter};
+use orthography::to_nfc;
+
+#[derive(Debug, Clone)]
+pub struct Candidate {
+    pub rule: Option<RuleData>,
+    pub score: Option<f64>,
+    pub splits: Vec<String>,
+}
 
 pub struct Viccheda {
     splitter: Splitter,
@@ -17,12 +24,12 @@ impl Viccheda {
         }
     }
 
-    pub fn split(&self, word: &str) -> Option<(Candidate, f64)> {
+    pub fn split(&self, word: &str) -> Option<Candidate> {
         let nfc_word = to_nfc(word);
 
         // sandhi cache
         if let Some(res) = CacheTable::get(&nfc_word) {
-            return Some((res, 1.0));
+            return Some(res);
         }
 
         self.splitter.best_candidate(&nfc_word)
@@ -148,15 +155,20 @@ mod tests {
         for (word, expected_parts) in cases {
             let expected_str = join_parts(expected_parts);
             let viccheda = Viccheda::new(true);
-            let cands = viccheda.split(&word);
+            let candi = viccheda.split(&word);
 
             assert!(
-                cands.clone().is_some_and(|(f, _)| !f.splits.is_empty()),
+                candi.is_some(),
+                "Expected at least one candidate for `{}`",
+                word
+            );
+            assert!(
+                candi.clone().is_some_and(|f| !f.splits.is_empty()),
                 "Expected at least one candidate for `{}`",
                 word
             );
 
-            let joined: String = join_parts(cands.unwrap().0.splits);
+            let joined: String = join_parts(candi.unwrap().splits);
             assert!(
                 joined.contains(&expected_str.to_string()),
                 "Word `{}` missing expected split `{}`.\nCandidates: {:?}",
@@ -190,12 +202,12 @@ mod tests {
             let cands = viccheda.split(&word);
 
             assert!(
-                cands.clone().is_some_and(|(f, _)| !f.splits.is_empty()),
+                cands.clone().is_some_and(|f| !f.splits.is_empty()),
                 "Expected at least one candidate for `{}`",
                 word
             );
 
-            let joined: String = join_parts(cands.unwrap().0.splits);
+            let joined: String = join_parts(cands.unwrap().splits);
             assert!(
                 joined.contains(&expected_str.to_string()),
                 "Word `{}` missing expected split `{}`.\nCandidates: {:?}",
