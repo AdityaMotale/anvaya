@@ -1,5 +1,5 @@
 use crate::rules::{
-    rule::{MultiOptRule, RuleData, RuleGroup},
+    rule::{BaseRule, MultiOptRule, RuleData, RuleGroup},
     Adjuncts, Rule,
 };
 use orthography::{Akshara, Consonant, SoundClass, Vowel};
@@ -11,6 +11,8 @@ impl RuleGroup for VynjanParaswarn {
         let mut rls = Vec::new();
 
         rls.extend(Self::paraswarn());
+        rls.extend(Self::nn_to_n_n());
+        rls.extend(Self::tj_to_m_j());
 
         rls
     }
@@ -59,6 +61,38 @@ impl VynjanParaswarn {
             },
         })]
     }
+
+    fn nn_to_n_n() -> Vec<Box<dyn Rule>> {
+        vec![Box::new(BaseRule(RuleData {
+            name: "vyanjan-paraswarn-nn",
+            desc: "न्न= न + अ ",
+            tag: "8.3.37",
+            left: Akshara(vec![SoundClass::Consonant(Consonant::Na)]),
+            right: Akshara(vec![SoundClass::Consonant(Consonant::Na)]),
+            merged: Akshara(vec![
+                SoundClass::Consonant(Consonant::Na),
+                SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                SoundClass::Consonant(Consonant::Na),
+            ]),
+            special_sequence: None,
+        }))]
+    }
+
+    fn tj_to_m_j() -> Vec<Box<dyn Rule>> {
+        vec![Box::new(BaseRule(RuleData {
+            name: "vyanjan-paraswarn-nn",
+            desc: "ञ्ज = म + ज ",
+            tag: "8.3.37",
+            left: Akshara(vec![SoundClass::Consonant(Consonant::Ma)]),
+            right: Akshara(vec![SoundClass::Consonant(Consonant::Ja)]),
+            merged: Akshara(vec![
+                SoundClass::Consonant(Consonant::Nya),
+                SoundClass::Adjuncts(Adjuncts::VIRAMA),
+                SoundClass::Consonant(Consonant::Ja),
+            ]),
+            special_sequence: None,
+        }))]
+    }
 }
 
 #[cfg(test)]
@@ -67,6 +101,20 @@ mod tests {
 
     fn create_logger() {
         let _ = crate::init_logger("VyanjanAnunasik Rules (Test)");
+    }
+
+    #[test]
+    fn nn_to_n_n_debug() {
+        create_logger();
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("तान्निबोध", vec![vec!["तान", "निबोध"]])];
+        test_sandhi_cases(cases, true);
+    }
+
+    #[test]
+    fn tj_to_m_j_debug() {
+        create_logger();
+        let cases: Vec<(&str, Vec<Vec<&str>>)> = vec![("समितिञ्जय", vec![vec!["समितिम", "जय"]])];
+        test_sandhi_cases(cases, true);
     }
 
     #[test]
