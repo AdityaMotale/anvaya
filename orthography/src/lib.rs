@@ -34,6 +34,76 @@ pub trait FromStr: Sized + AsIter + AsStr + AsChar {
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, EnumIter)]
+pub enum Punctuation {
+    DANDA,
+    DANDA2,
+}
+
+impl AsStr for Punctuation {
+    #[inline]
+    fn as_str(&self) -> Option<&'static str> {
+        match self {
+            Punctuation::DANDA => Some("।"),
+            Punctuation::DANDA2 => Some("॥"),
+        }
+    }
+}
+
+impl AsChar for Punctuation {
+    #[inline]
+    fn as_char(&self) -> char {
+        match self {
+            Punctuation::DANDA => '\u{0964}',
+            Punctuation::DANDA2 => '\u{0965}',
+        }
+    }
+}
+
+impl AsIter for Punctuation {
+    #[inline]
+    fn as_iter() -> impl Iterator<Item = Punctuation> {
+        Self::iter()
+    }
+}
+
+impl FromStr for Punctuation {
+    fn from_str(inp: &str) -> Option<Self> {
+        for item in Self::as_iter() {
+            if let Some(str) = item.as_str() {
+                if str == inp {
+                    return Some(item);
+                }
+            }
+
+            if item.as_char().to_string() == inp {
+                return Some(item);
+            }
+        }
+
+        match inp {
+            "|" => Some(Self::DANDA),
+            "||" => Some(Self::DANDA2),
+            _ => None,
+        }
+    }
+}
+
+#[test]
+fn punctuation_as_char_matches_as_str() {
+    for a in Punctuation::as_iter() {
+        if let Some(s) = a.as_str() {
+            assert_eq!(a.as_char(), s.chars().next().unwrap());
+        }
+    }
+}
+
+#[test]
+fn punctuation_as_str_matches_invaid() {
+    assert_eq!(Punctuation::DANDA.as_str(), Some("।"));
+    assert_eq!(Punctuation::DANDA2.as_str(), Some("॥"));
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq, EnumIter)]
 pub enum Adjuncts {
     ANUSVARA,
     VISARGA,
