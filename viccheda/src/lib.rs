@@ -3,7 +3,9 @@ mod freq_table;
 mod rules;
 mod split;
 
-use crate::{cache_table::CacheTable, rules::rule::RuleData, split::Splitter};
+use crate::{
+    cache_table::CacheTable, freq_table::FreqTable, rules::rule::RuleData, split::Splitter,
+};
 use orthography::to_nfc;
 
 #[derive(Debug, Clone)]
@@ -30,6 +32,11 @@ impl Viccheda {
         // sandhi cache
         if let Some(res) = CacheTable::get(&nfc_word) {
             return Some(res);
+        }
+
+        // valid word
+        if let Some(_) = FreqTable::get(&nfc_word) {
+            return None;
         }
 
         self.splitter.best_candidate(&nfc_word)
