@@ -87,6 +87,74 @@ fn adjuncts_as_char_matches_as_str() {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumIter)]
+pub enum Anka {
+    Zero,
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven,
+    Eight,
+    Nine,
+}
+
+impl AsStr for Anka {
+    #[inline]
+    fn as_str(&self) -> Option<&'static str> {
+        match self {
+            Anka::Zero => Some("०"),
+            Anka::One => Some("१"),
+            Anka::Two => Some("२"),
+            Anka::Three => Some("३"),
+            Anka::Four => Some("४"),
+            Anka::Five => Some("५"),
+            Anka::Six => Some("६"),
+            Anka::Seven => Some("७"),
+            Anka::Eight => Some("८"),
+            Anka::Nine => Some("९"),
+        }
+    }
+}
+
+impl AsChar for Anka {
+    #[inline]
+    fn as_char(&self) -> char {
+        match self {
+            Anka::Zero => '\u{0966}',
+            Anka::One => '\u{0967}',
+            Anka::Two => '\u{0968}',
+            Anka::Three => '\u{0969}',
+            Anka::Four => '\u{096A}',
+            Anka::Five => '\u{096B}',
+            Anka::Six => '\u{096C}',
+            Anka::Seven => '\u{096D}',
+            Anka::Eight => '\u{096E}',
+            Anka::Nine => '\u{096F}',
+        }
+    }
+}
+
+impl AsIter for Anka {
+    #[inline]
+    fn as_iter() -> impl Iterator<Item = Anka> {
+        Anka::iter()
+    }
+}
+
+impl FromStr for Anka {}
+
+#[test]
+fn anka_as_char_matches_as_str() {
+    for a in Anka::as_iter() {
+        if let Some(s) = a.as_str() {
+            assert_eq!(a.as_char(), s.chars().next().unwrap());
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumIter)]
 pub enum Vowel {
     A,
     AA,
